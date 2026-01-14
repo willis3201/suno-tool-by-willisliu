@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>AI音樂指令生成器 by Willis Liu</title>
+    <style>
+        /* 基礎設定 */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f5f6fa;
+            padding: 20px;
+            padding-bottom: 600px; /* 底部留白 */
+            max-width: 1100px;
+            margin: 0 auto;
+            color: #2d3436;
+        }
+
+        h2 { text-align: center; border-bottom: 3px solid #b2bec3; padding-bottom: 15px; margin-bottom: 25px; }
+
+        /* 區塊設計 */
+        .layer-box {
+            background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px;
+            border-left: 8px solid #ccc; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        /* 顏色識別 */
+        .layer-recipe { border-left-color: #000; background: linear-gradient(to right, #fff, #fbf5e6); border: 2px solid #e1b12c; }
+        .layer-1 { border-left-color: #0984e3; }
+        .layer-2 { border-left-color: #d63031; }
+        .layer-region { border-left-color: #00b894; }
+        .layer-theory { border-left-color: #6ab04c; }
+        .layer-3 { border-left-color: #f1c40f; }
+        .layer-3b { border-left-color: #e84393; }
+        .layer-4 { border-left-color: #0984e3; }
+        .layer-6 { border-left-color: #2d3436; }
+
+        .title { font-weight: 800; font-size: 16px; margin-bottom: 15px; display: block; }
+        .btn-group { display: flex; flex-wrap: wrap; gap: 8px; }
+
+        /* 按鈕通用 */
+        button {
+            padding: 8px 14px; border: 2px solid #dfe6e9; background: white; border-radius: 8px;
+            cursor: pointer; font-size: 13px; font-weight: 600; color: #636e72; transition: all 0.1s;
+        }
+        button:hover { transform: translateY(-2px); border-color: #b2bec3; }
+
+        /* 黃金配方按鈕 */
+        .btn-recipe {
+            border-color: #e1b12c; color: #b78e16; background: #fffdf0; flex: 1 0 18%;
+            text-align: center; box-shadow: 0 2px 5px rgba(225, 177, 44, 0.2);
+        }
+        .btn-recipe:hover { background: #e1b12c; color: white; transform: scale(1.02); }
+
+        /* 激活狀態 */
+        .btn-struct.active { background: #0984e3; color: white; border-color: #0984e3; }
+        .btn-style.active { background: #d63031; color: white; border-color: #d63031; }
+        .btn-region.active { background: #00b894; color: white; border-color: #00b894; }
+        .btn-theory.active { background: #6ab04c; color: white; border-color: #6ab04c; }
+        .btn-inst.active { background: #f1c40f; color: white; border-color: #f1c40f; text-shadow: 0 1px 1px rgba(0,0,0,0.2); }
+        .btn-vox.active { background: #e84393; color: white; border-color: #e84393; }
+        .btn-time.active { background: #0984e3; color: white; border-color: #0984e3; }
+        .btn-bpm.active { background: #6c5ce7; color: white; border-color: #6c5ce7; }
+        .btn-prod.active { background: #2d3436; color: white; border-color: #2d3436; }
+        .btn-neg.active { background: #eb4d4b; color: white; border-color: #eb4d4b; }
+
+        .sub-label { width: 100%; font-size: 13px; font-weight: bold; color: #b2bec3; margin: 15px 0 8px 0; border-bottom: 1px dashed #e1e1e1; padding-bottom: 2px; }
+
+        /* 結果區 */
+        .result-area {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 900px;
+            background-color: #2d3436; padding: 20px; border-radius: 15px; color: white;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5); z-index: 9999; border: 2px solid #00b894;
+        }
+        
+        .custom-input {
+            width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 6px; border: 1px solid #555;
+            background: #dfe6e9; color: #2d3436; font-size: 14px;
+        }
+
+        textarea {
+            width: 100%; height: 80px; background: #353b48; color: #55efc4; border: 1px solid #555;
+            padding: 10px; border-radius: 8px; font-size: 14px; font-family: monospace; resize: none;
+        }
+        .copy-btn {
+            width: 100%; padding: 12px; background: #00b894; color: #2d3436; font-weight: bold; font-size: 16px;
+            border: none; border-radius: 8px; cursor: pointer; margin-top: 10px;
+        }
+        .copy-btn:hover { background: #55efc4; }
+
+    </style>
+</head>
+<body>
+
+    <h2>🎻 AI音樂指令生成器 by Willis Liu</h2>
+
+    <div class="layer-box layer-recipe">
+        <span class="title" style="color:#b78e16">🏆 Layer 0. 黃金配方 (Golden Recipes)</span>
+        <div class="btn-group">
+            <button class="btn-recipe" onclick="applyPreset('intimate')">1. 情感獨奏 (Olafur)</button>
+            <button class="btn-recipe" onclick="applyPreset('epic')">2. 史詩動作 (Zimmer)</button>
+            <button class="btn-recipe" onclick="applyPreset('cyberpunk')">3. 賽博未來 (Blade Runner)</button>
+            <button class="btn-recipe" onclick="applyPreset('fantasy')">4. 奇幻魔法 (Harry Potter)</button>
+            <button class="btn-recipe" onclick="applyPreset('horror')">5. 現代驚悚 (Joker)</button>
+            <button class="btn-recipe" onclick="applyPreset('baroque')">6. 皇家巴洛克</button>
+            <button class="btn-recipe" onclick="applyPreset('ghibli')">7. 吉卜力風 (久石讓)</button>
+            <button class="btn-recipe" onclick="applyPreset('silkroad')">8. 絲路之旅 (中西)</button>
+            <button class="btn-recipe" onclick="applyPreset('kpop')">9. 韓流來襲 (K-Pop)</button>
+            <button class="btn-recipe" onclick="applyPreset('latin')">10. 熱情拉丁 (Bossa)</button>
+        </div>
+    </div>
+
+    <div class="layer-box layer-1">
+        <span class="title">Layer 1. 結構骨架</span>
+        <div class="btn-group">
+            <button class="btn-struct" data-val="[Intro], [Verse 1], [Chorus], [Verse 2], [Chorus], [Bridge], [Outro]" onclick="setStruct(this)">標準流行歌</button>
+            <button class="btn-struct" data-val="[Intro], [Hook], [Drop], [Hook], [Short Outro]" onclick="setStruct(this)">短影音爆點</button>
+            <button class="btn-struct" data-val="[Orchestral Intro], [Violin Solo], [Cadenza], [Grand Finale]" onclick="setStruct(this)">協奏曲展技</button>
+            <button class="btn-struct" data-val="[Atmospheric Intro], [Steady Beat], [Developing Textures], [Fade Out]" onclick="setStruct(this)">循環背景樂</button>
+            <button class="btn-struct" data-val="[Count In], [Simple Intro], [Repetitive Groove], [Steady Rhythm]" onclick="setStruct(this)">教學伴奏</button>
+        </div>
+    </div>
+
+    <div class="layer-box layer-2">
+        <span class="title">Layer 2. 風格與情緒</span>
+        <div class="btn-group">
+            <button class="btn-style" data-val="Baroque Pop" onclick="toggleTag(this)">巴洛克流行</button>
+            <button class="btn-style" data-val="Cyberpunk Strings" onclick="toggleTag(this)">賽博龐克</button>
+            <button class="btn-style" data-val="Cinematic Epic" onclick="toggleTag(this)">史詩電影</button>
+            <button class="btn-style" data-val="Minimalism" onclick="toggleTag(this)">極簡主義</button>
+            <button class="btn-style" data-val="Intimate, Emotional" onclick="toggleTag(this)">親密感</button>
+            <button class="btn-style" data-val="Ominous, Dark" onclick="toggleTag(this)">壓迫/黑暗</button>
+            <button class="btn-style" data-val="Ethereal, Dreamy" onclick="toggleTag(this)">空靈夢幻</button>
+            <button class="btn-style" data-val="Uplifting Corporate" onclick="toggleTag(this)">振奮人心</button>
+        </div>
+    </div>
+
+    <div class="layer-box layer-region">
+        <span class="title">Layer 2.5 地區特色</span>
+        <div class="sub-label">🌏 亞洲</div>
+        <div class="btn-group">
+            <button class="btn-region" data-val="K-Pop, Idol, Catchy" onclick="toggleTag(this)">🇰🇷 K-Pop</button>
+            <button class="btn-region" data-val="J-Pop, City Pop, Anime Style" onclick="toggleTag(this)">🇯🇵 J-Pop</button>
+            <button class="btn-region" data-val="C-Pop, Mandopop, Chinese Traditional" onclick="toggleTag(this)">🇨🇳 C-Pop</button>
+            <button class="btn-region" data-val="Bollywood, Indian Pop" onclick="toggleTag(this)">🇮🇳 Bollywood</button>
+        </div>
+        <div class="sub-label">🏰 歐美</div>
+        <div class="btn-group">
+            <button class="btn-region" data-val="US Pop, Billboard Chart" onclick="toggleTag(this)">🇺🇸 US Billboard</button>
+            <button class="btn-region" data-val="Britpop, UK Rock" onclick="toggleTag(this)">🇬🇧 UK Sound</button>
+            <button class="btn-region" data-val="French Chanson, Accordion" onclick="toggleTag(this)">🇫🇷 French</button>
+            <button class="btn-region" data-val="Nordic Noir, Scandi" onclick="toggleTag(this)">🇸🇪 Nordic</button>
+        </div>
+        <div class="sub-label">🏝️ 其他</div>
+        <div class="btn-group">
+            <button class="btn-region" data-val="Latin Pop, Reggaeton, Bossa Nova" onclick="toggleTag(this)">🇧🇷 Latin</button>
+            <button class="btn-region" data-val="Afrobeats, Percussive" onclick="toggleTag(this)">🌍 Afrobeats</button>
+        </div>
+    </div>
+
+    <div class="layer-box layer-theory">
+        <span class="title">Layer 2.6 調性與和聲</span>
+        <div class="btn-group">
+            <button class="btn-theory" data-val="Major Key, Bright" onclick="toggleTag(this)">大調</button>
+            <button class="btn-theory" data-val="Minor Key, Sad" onclick="toggleTag(this)">小調</button>
+            <button class="btn-theory" data-val="Dorian Mode, Mysterious" onclick="toggleTag(this)">多里安</button>
+            <button class="btn-theory" data-val="Atonal, Dissonant" onclick="toggleTag(this)">無調性</button>
+            <button class="btn-theory" data-val="Pentatonic Scale" onclick="toggleTag(this)">五聲音階</button>
+        </div>
+    </div>
+
+    <div class="layer-box layer-3">
+        <span class="title">Layer 3. 器樂配器</span>
+        <div class="sub-label">🎻 弦樂</div>
+        <div class="btn-group">
+            <button class="btn-inst" data-val="Solo Violin" onclick="toggleTag(this)">小提琴</button>
+            <button class="btn-inst" data-val="Solo Cello" onclick="toggleTag(this)">大提琴</button>
+            <button class="btn-inst" data-val="String Quartet" onclick="toggleTag(this)">弦樂四重奏</button>
+            <button class="btn-inst" data-val="Harp" onclick="toggleTag(this)">豎琴</button>
+        </div>
+        <div class="sub-label">🎷 管樂</div>
+        <div class="btn-group">
+            <button class="btn-inst" data-val="Flute" onclick="toggleTag(this)">長笛</button>
+            <button class="btn-inst" data-val="Oboe" onclick="toggleTag(this)">雙簧管</button>
+            <button class="btn-inst" data-val="French Horn" onclick="toggleTag(this)">法國號</button>
+            <button class="btn-inst" data-val="Trombone" onclick="toggleTag(this)">長號</button>
+        </div>
+        <div class="sub-label">🏮 東方</div>
+        <div class="btn-group">
+            <button class="btn-inst" data-val="Erhu" onclick="toggleTag(this)">二胡</button>
+            <button class="btn-inst" data-val="Guzheng" onclick="toggleTag(this)">古箏</button>
+            <button class="btn-inst" data-val="Shakuhachi" onclick="toggleTag(this)">尺八</button>
+            <button class="btn-inst" data-val="Taiko Drums" onclick="toggleTag(this)">太鼓</button>
+        </div>
+        <div class="sub-label">🎸 現代</div>
+        <div class="btn-group">
+            <button class="btn-inst" data-val="Grand Piano" onclick="toggleTag(this)">鋼琴</button>
+            <button class="btn-inst" data-val="Heavy 808 Bass" onclick="toggleTag(this)">808重低音</button>
+            <button class="btn-inst" data-val="Synthesizer" onclick="toggleTag(this)">合成器</button>
+            <button class="btn-inst" data-val="Celesta" onclick="toggleTag(this)">鋼片琴</button>
+        </div>
+    </div>
+
+    <div class="layer-box layer-3b">
+        <span class="title">Layer 3B. 人聲與時代感</span>
+        <div class="btn-group">
+            <button class="btn-vox" data-val="Coloratura Soprano" onclick="toggleTag(this)">花腔女高音</button>
+            <button class="btn-vox" data-val="Operatic Tenor" onclick="toggleTag(this)">歌劇男高音</button>
+            <button class="btn-vox" data-val="Choir" onclick="toggleTag(this)">合唱團</button>
+            <button class="btn-vox" data-val="Countertenor, Early Music Style" onclick="toggleTag(this)">巴洛克男聲</button>
+            <button class="btn-vox" data-val="Wagnerian Tenor, Dramatic" onclick="toggleTag(this)">後浪漫男聲</button>
+            <button class="btn-vox" data-val="70s Soft Rock Male Vocals" onclick="toggleTag(this)">70s 男聲</button>
+            <button class="btn-vox" data-val="90s Grunge Male Vocals" onclick="toggleTag(this)">90s 男聲</button>
+            <button class="btn-vox" data-val="Gen Z Female Vocals, Breathy" onclick="toggleTag(this)">Gen Z 女聲</button>
+        </div>
+    </div>
+
+    <div class="layer-box layer-4">
+        <span class="title">Layer 4 & 5. 時間與速度</span>
+        <div class="sub-label">⏱️ 時間</div>
+        <div class="btn-group">
+            <button class="btn-time" data-val="[1 Minute], [Short]" onclick="toggleTag(this)">1 分鐘</button>
+            <button class="btn-time" data-val="[2 Minutes]" onclick="toggleTag(this)">2 分鐘</button>
+            <button class="btn-time" data-val="[3 Minutes], [Full Structure]" onclick="toggleTag(this)">3 分鐘</button>
+        </div>
+        <div class="sub-label">🏎️ BPM</div>
+        <div class="btn-group">
+            <button class="btn-bpm" data-val="60 BPM, Largo" onclick="toggleTag(this)">60 BPM</button>
+            <button class="btn-bpm" data-val="80 BPM, Adagio" onclick="toggleTag(this)">80 BPM</button>
+            <button class="btn-bpm" data-val="120 BPM, Moderato" onclick="toggleTag(this)">120 BPM</button>
+            <button class="btn-bpm" data-val="140 BPM, Allegro" onclick="toggleTag(this)">140 BPM</button>
+            <button class="btn-bpm" data-val="170+ BPM, Presto" onclick="toggleTag(this)">170+ BPM</button>
+        </div>
+    </div>
+
+    <div class="layer-box layer-6">
+        <span class="title">Layer 6. 製作與排除</span>
+        <div class="btn-group">
+            <button class="btn-prod" data-val="High Fidelity" onclick="toggleTag(this)">高傳真</button>
+            <button class="btn-prod" data-val="Masterpiece" onclick="toggleTag(this)">傑作級</button>
+            <button class="btn-prod" data-val="Wide Stereo" onclick="toggleTag(this)">寬立體聲</button>
+            <button class="btn-prod" data-val="Hans Zimmer Style" onclick="toggleTag(this)">季默大動態</button>
+            <button class="btn-prod" data-val="[Instrumental]" onclick="toggleTag(this)">🚫 純音樂</button>
+        </div>
+        <div class="sub-label" style="color:#eb4d4b;">⛔ 排除項目</div>
+        <div class="btn-group">
+            <button class="btn-neg" data-val="[No Drums]" onclick="toggleTag(this)">無鼓聲</button>
+            <button class="btn-neg" data-val="[No Percussion]" onclick="toggleTag(this)">無打擊樂</button>
+            <button class="btn-neg" data-val="[Acoustic Only]" onclick="toggleTag(this)">純原聲</button>
+        </div>
+    </div>
+
+    <div class="result-area">
+        <div style="margin-bottom:10px;">
+            <input type="text" id="customInput" class="custom-input" placeholder="✨ 任何補充指令 (例如: Sound of rain, Joe Hisaishi style...)" oninput="render()">
+        </div>
+        <div style="display:flex; justify-content:space-between; color:#00b894; font-weight:bold; margin-bottom:5px;">
+            <span>📜 最終生成指令：</span>
+            <span style="cursor:pointer; text-decoration: underline;" onclick="resetAll()">[ 重置全部 ]</span>
+        </div>
+        <textarea id="output" placeholder="請選擇選項..." readonly></textarea>
+        <button class="copy-btn" onclick="copyText()">📋 複製指令</button>
+    </div>
+
+    <script>
+        let struct = "";
+        let tags = [];
+
+        const recipes = {
+            'intimate': ['[Atmospheric Intro], [Steady Beat], [Developing Textures], [Fade Out]', 'Minimalism', 'Intimate, Emotional', 'Minor Key, Sad', 'Nordic Noir, Scandi', 'Solo Cello', 'Solo Violin', 'Grand Piano', 'Wide Stereo', '[Instrumental]', '60 BPM, Largo', '[2 Minutes]'],
+            'epic': ['[Orchestral Intro], [Violin Solo], [Cadenza], [Grand Finale]', 'Cinematic Epic', 'Minor Key, Sad', 'French Horn', 'Trombone', 'Taiko Drums', 'String Quartet', 'Hans Zimmer Style', 'High Fidelity', '[Instrumental]', '80 BPM, Adagio', '[3 Minutes], [Full Structure]'],
+            'cyberpunk': ['[Intro], [Hook], [Drop], [Hook], [Short Outro]', 'Cyberpunk Strings', 'Ominous, Dark', 'J-Pop, City Pop, Anime Style', 'Electric Violin', 'Heavy 808 Bass', 'Synthesizer', 'Spatial Audio', '[Instrumental]', '120 BPM, Moderato', '[2 Minutes]'],
+            'fantasy': ['[Orchestral Intro], [Violin Solo], [Cadenza], [Grand Finale]', 'Ethereal, Dreamy', 'Major Key, Bright', 'Harp', 'Flute', 'Celesta', 'Choir', 'High Fidelity', 'Wide Stereo', '80 BPM, Adagio', '[3 Minutes], [Full Structure]'],
+            'horror': ['[Atmospheric Intro], [Steady Beat], [Developing Textures], [Fade Out]', 'Ominous, Dark', 'Atonal, Dissonant', 'Solo Cello', 'String Quartet', 'Spatial Audio', '60 BPM, Largo', '[Instrumental]', '[1 Minute], [Short]'],
+            'baroque': ['[Intro], [Verse 1], [Chorus], [Verse 2], [Chorus], [Bridge], [Outro]', 'Baroque Pop', 'Major Key, Bright', 'Britpop, UK Rock', 'String Quartet', 'Grand Piano', 'Synthesizer', 'High Fidelity', '120 BPM, Moderato', '[3 Minutes], [Full Structure]'],
+            'ghibli': ['[Intro], [Verse 1], [Chorus], [Verse 2], [Chorus], [Bridge], [Outro]', 'Cinematic Epic', 'Ethereal, Dreamy', 'Major Key, Bright', 'J-Pop, City Pop, Anime Style', 'Grand Piano', 'Oboe', 'String Quartet', 'Masterpiece', '[Instrumental]', '100 BPM, Andante', '[3 Minutes], [Full Structure]'],
+            'silkroad': ['[Orchestral Intro], [Violin Solo], [Cadenza], [Grand Finale]', 'Cinematic Epic', 'Pentatonic Scale', 'C-Pop, Mandopop, Chinese Traditional', 'Solo Cello', 'Erhu', 'Shakuhachi', 'Taiko Drums', 'Masterpiece', '[Instrumental]', '80 BPM, Adagio', '[4 Minutes], [Extended]'],
+            'kpop': ['[Intro], [Verse 1], [Chorus], [Verse 2], [Chorus], [Bridge], [Outro]', 'Uplifting Corporate', 'K-Pop, Idol, Catchy', 'Major Key, Bright', 'Synthesizer', 'Heavy 808 Bass', 'High Fidelity', '140 BPM, Allegro', '[3 Minutes], [Full Structure]'],
+            'latin': ['[Intro], [Hook], [Drop], [Hook], [Short Outro]', 'Intimate, Emotional', 'Latin Pop, Reggaeton, Bossa Nova', 'Minor Key, Sad', 'Solo Violin', 'Grand Piano', 'High Fidelity', '120 BPM, Moderato', '[2 Minutes]']
+        };
+
+        function applyPreset(name) {
+            resetAll();
+            const recipe = recipes[name];
+            if (!recipe) return;
+            recipe.forEach(val => {
+                const structBtn = document.querySelector(`.btn-struct[data-val="${val}"]`);
+                if (structBtn) setStruct(structBtn);
+                const otherBtn = document.querySelector(`button:not(.btn-struct)[data-val="${val}"]`);
+                if (otherBtn) toggleTag(otherBtn);
+            });
+        }
+
+        function setStruct(el) {
+            const val = el.getAttribute('data-val');
+            if(!val) { alert("⚠️ 錯誤：讀取不到指令，請確認已關閉 Mac 智慧型引號設定。"); return; }
+            document.querySelectorAll('.btn-struct').forEach(b => b.classList.remove('active'));
+            if (struct === val) { struct = ""; } 
+            else { struct = val; el.classList.add('active'); }
+            render();
+        }
+
+        function toggleTag(el) {
+            const val = el.getAttribute('data-val');
+            if(!val) { alert("⚠️ 錯誤：讀取不到指令，請確認已關閉 Mac 智慧型引號設定。"); return; }
+            if (tags.includes(val)) {
+                tags = tags.filter(t => t !== val);
+                el.classList.remove('active');
+            } else {
+                tags.push(val);
+                el.classList.add('active');
+            }
+            render();
+        }
+
+        function resetAll() {
+            struct = "";
+            tags = [];
+            document.getElementById('customInput').value = "";
+            document.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+            render();
+        }
+
+        function render() {
+            let res = "";
+            let customText = document.getElementById('customInput').value.trim();
+            if (struct) res += "Structure: " + struct + " | ";
+            let allTags = [...tags];
+            if (customText) allTags.push(customText);
+            if (allTags.length > 0) res += "Style: " + allTags.join(", ");
+            document.getElementById('output').value = res;
+        }
+
+        function copyText() {
+            let box = document.getElementById('output');
+            if(!box.value) return alert("請先選擇！");
+            box.select();
+            navigator.clipboard.writeText(box.value);
+            let btn = document.querySelector('.copy-btn');
+            let orig = btn.innerText;
+            btn.innerText = "✅ 複製成功！";
+            setTimeout(() => btn.innerText = orig, 2000);
+        }
+    </script>
+</body>
+</html>
