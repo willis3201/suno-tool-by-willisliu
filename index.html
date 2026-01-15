@@ -3,51 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI音樂指令生成器 by Willis Liu (V14.0)</title>
+    <title>AI音樂指令生成器 by Willis Liu (V17.0)</title>
     <style>
         /* --- 基礎設定 --- */
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #f5f6fa;
-            padding: 15px;
-            padding-bottom: 600px;
-            max-width: 1000px;
-            margin: 0 auto;
-            color: #2d3436;
-            -webkit-text-size-adjust: 100%;
+            background-color: #f5f6fa; padding: 15px; padding-bottom: 600px;
+            max-width: 1000px; margin: 0 auto; color: #2d3436; -webkit-text-size-adjust: 100%;
         }
-
         h2 { text-align: center; border-bottom: 3px solid #b2bec3; padding-bottom: 15px; margin-bottom: 20px; font-size: 1.5rem; }
-
-        /* --- 黃金法則圖卡 --- */
-        .info-box {
-            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
-            color: white; padding: 20px; border-radius: 15px; margin-bottom: 25px;
-            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);
-        }
-        .info-title { text-align: center; font-weight: 800; font-size: 1.2rem; margin-bottom: 15px; }
-        .rules-container { display: flex; flex-wrap: wrap; gap: 15px; justify-content: space-between; }
-        .rule-card {
-            background: rgba(255, 255, 255, 0.95); color: #2d3436; border-radius: 12px; padding: 15px;
-            flex: 1 1 30%; min-width: 250px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        .rule-card h4 { margin: 0 0 8px 0; font-size: 16px; color: #6c5ce7; text-align: center; }
-        .rule-desc { font-size: 13px; color: #636e72; margin-bottom: 12px; text-align: center; }
-        .example { font-size: 12px; padding: 6px 10px; border-radius: 6px; margin-bottom: 5px; font-family: monospace; }
-        .bad { background: #ffecec; color: #d63031; border-left: 4px solid #d63031; }
-        .good { background: #e3fafc; color: #00b894; border-left: 4px solid #00b894; font-weight: bold; }
 
         /* --- 區塊與顏色 --- */
         .layer-box { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; border-left: 6px solid #ccc; }
         .layer-recipe { border-left-color: #f1c40f; background: linear-gradient(to right, #fff, #fffbf0); border: 2px solid #f1c40f; }
-        .layer-1 { border-left-color: #0984e3; }
-        .layer-2 { border-left-color: #d63031; }
-        .layer-2b { border-left-color: #00b894; }
-        .layer-3 { border-left-color: #6c5ce7; }
-        .layer-4 { border-left-color: #e84393; }
-        .layer-5 { border-left-color: #e17055; }
-        .layer-6 { border-left-color: #fd79a8; }
-        .layer-8 { border-left-color: #2d3436; }
+        .layer-1 { border-left-color: #0984e3; } /* 結構 */
+        .layer-2 { border-left-color: #d63031; } /* 風格 */
+        .layer-2b { border-left-color: #00b894; } /* 流量 */
+        .layer-4 { border-left-color: #e84393; } /* 情感 */
+        .layer-6 { border-left-color: #fd79a8; } /* 人聲 (重點修改) */
+        .layer-5 { border-left-color: #e17055; } /* 速度 */
+        .layer-3 { border-left-color: #6c5ce7; } /* 樂器 */
+        .layer-8 { border-left-color: #2d3436; } /* 濾鏡 */
 
         .title { font-weight: 800; font-size: 15px; margin-bottom: 10px; display: block; }
         .btn-group { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -74,65 +50,48 @@
         .btn-neg.active { background: #eb4d4b; color: white; border-color: #eb4d4b; }
         .sub-label { width: 100%; font-size: 12px; font-weight: bold; color: #b2bec3; margin: 10px 0 5px 0; border-bottom: 1px dashed #e1e1e1; padding-bottom: 2px; }
 
-        /* --- 結果顯示區 (含計數器) --- */
+        /* --- 下拉提示與計數器 --- */
+        .tips-container { margin-bottom: 15px; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1); background: white; }
+        details { width: 100%; }
+        summary { background: linear-gradient(135deg, #6c5ce7, #a29bfe); color: white; padding: 12px 15px; font-weight: bold; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+        summary::-webkit-details-marker { display: none; }
+        summary:after { content: "▼"; font-size: 12px; transition: 0.2s; }
+        details[open] summary:after { transform: rotate(180deg); }
+        .tips-content { padding: 15px; display: grid; grid-template-columns: 1fr; gap: 10px; background: #fff; }
+        .tip-item { font-size: 13px; color: #2d3436; padding: 8px; border-bottom: 1px solid #eee; }
+        .tip-ex { color: #00b894; font-family: monospace; display: block; margin-top: 4px; background: #f0fdf4; padding: 4px; border-radius: 4px;}
+
+        /* --- 結果顯示區 --- */
         .result-area {
             position: fixed; bottom: 0; left: 0; width: 100%;
-            background-color: #2d3436; padding: 15px; 
-            border-top: 4px solid #f1c40f;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.3); z-index: 9999;
-            box-sizing: border-box;
+            background-color: #2d3436; padding: 15px; border-top: 4px solid #f1c40f;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.3); z-index: 9999; box-sizing: border-box;
         }
         .custom-input {
-            width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 6px; border: none;
+            width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 6px; border: none;
             background: #dfe6e9; color: #2d3436; font-size: 14px; box-sizing: border-box;
+            border: 2px solid transparent; transition: 0.2s;
         }
+        .custom-input:focus { border-color: #f1c40f; outline: none; background: #fff; }
         textarea {
             width: 100%; height: 70px; background: #353b48; color: #55efc4; border: 1px solid #555;
             padding: 10px; border-radius: 8px; font-size: 14px; font-family: monospace; resize: none; box-sizing: border-box;
         }
-        
-        /* 字數計數器樣式 */
-        .char-counter {
-            text-align: right; font-size: 12px; font-weight: bold; margin-top: 5px; font-family: monospace;
-        }
+        .char-counter { text-align: right; font-size: 12px; font-weight: bold; margin-top: 5px; font-family: monospace; }
         .count-safe { color: #00b894; }
         .count-warning { color: #fdcb6e; }
-        .count-danger { color: #ff7675; animation: shake 0.5s; }
-
-        @keyframes shake {
-            0% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-5px); } 100% { transform: translateX(0); }
-        }
-
+        .count-danger { color: #ff7675; }
         .copy-btn {
             width: 100%; padding: 12px; background: #00b894; color: white; font-weight: bold; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; margin-top: 8px;
         }
-        .copy-btn:hover { background: #55efc4; }
     </style>
 </head>
 <body>
 
     <h2>🎻 AI音樂指令生成器 by Willis Liu</h2>
 
-    <div class="info-box">
-        <div class="info-title">✨ 補充指令 3 個黃金法則 ✨</div>
-        <div class="rules-container">
-            <div class="rule-card">
-                <h4>1. 給畫面</h4>
-                <div class="example good">✅ Rain sounds, Lonely street</div>
-            </div>
-            <div class="rule-card">
-                <h4>2. 給主題</h4>
-                <div class="example good">✅ About a broken robot</div>
-            </div>
-            <div class="rule-card">
-                <h4>3. 指定主角</h4>
-                <div class="example good">✅ Saxophone Solo</div>
-            </div>
-        </div>
-    </div>
-
     <div class="layer-box layer-recipe">
-        <span class="title">🏆 Layer 0. 黃金配方 (一鍵生成)</span>
+        <span class="title">🏆 Layer 0. 黃金配方 (懶人一鍵生成)</span>
         <div class="btn-group">
             <button class="btn-recipe" onclick="applyPreset('intimate')">1. 情感獨奏 (Olafur)</button>
             <button class="btn-recipe" onclick="applyPreset('epic')">2. 史詩動作 (Zimmer)</button>
@@ -146,7 +105,7 @@
     </div>
 
     <div class="layer-box layer-1">
-        <span class="title">Layer 1. 使用場景與結構</span>
+        <span class="title">🎬 Layer 1. 使用場景與結構 (必選)</span>
         <div class="btn-group">
             <button class="btn-struct" data-val="[Intro], [Verse 1], [Pre-Chorus], [Chorus], [Verse 2], [Chorus], [Bridge], [Outro]" onclick="setStruct(this)">📻 廣播金曲 (完整)</button>
             <button class="btn-struct" data-val="[Catchy Hook], [Fast Build Up], [Drop], [High Energy Chorus], [Sudden End]" onclick="setStruct(this)">📱 病毒短影音 (Reels)</button>
@@ -157,7 +116,7 @@
     </div>
 
     <div class="layer-box layer-2">
-        <span class="title">Layer 2. 音樂流派 (Genre)</span>
+        <span class="title">🎹 Layer 2. 音樂風格流派 (Genre)</span>
         <div class="btn-group">
             <button class="btn-style" data-val="Modern Pop, Synth-pop, EDM" onclick="toggleTag(this)">🎹 流行電子</button>
             <button class="btn-style" data-val="Hip Hop, Trap, R&B, Neo-Soul" onclick="toggleTag(this)">🎤 嘻哈節奏</button>
@@ -171,7 +130,7 @@
     </div>
 
     <div class="layer-box layer-2b">
-        <span class="title">Layer 3. 地區流量密碼 (Traffic & Culture)</span>
+        <span class="title">🌍 Layer 3. 地區流量密碼 (特定風格)</span>
         <div class="btn-group">
             <button class="btn-region" data-val="K-Pop, Catchy Hook" onclick="toggleTag(this)">🇰🇷 韓流 K-Pop</button>
             <button class="btn-region" data-val="J-Pop, Anime Opening" onclick="toggleTag(this)">🇯🇵 日系二次元</button>
@@ -184,8 +143,69 @@
         </div>
     </div>
 
+    <div class="layer-box layer-4">
+        <span class="title">❤️ Layer 4. 情感與心情 (Mood)</span>
+        <div class="btn-group">
+            <button class="btn-emo" data-val="Major Key, Uplifting, Playful" onclick="toggleTag(this)">☀️ Dopamine Rush (快樂)</button>
+            <button class="btn-emo" data-val="Minor Key, Melancholic, Lonely" onclick="toggleTag(this)">💧 3AM Thoughts (深夜emo)</button>
+            <button class="btn-emo" data-val="Epic Build Up, Triumphant, Powerful" onclick="toggleTag(this)">⚔️ Main Character (熱血)</button>
+            <button class="btn-emo" data-val="Nostalgic, Warm, Bittersweet" onclick="toggleTag(this)">🍂 Core Memory (懷舊)</button>
+            <button class="btn-emo" data-val="Dark Tension, Suspenseful, Dangerous" onclick="toggleTag(this)">🔥 Villain Arc (暗黑)</button>
+            <button class="btn-emo" data-val="Ethereal, Dreamy, Magical" onclick="toggleTag(this)">✨ POV: Dreamscape (夢幻)</button>
+        </div>
+    </div>
+
+    <div class="layer-box layer-6">
+        <span class="title">🎤 Layer 5. 人聲與主角 (Vocals - 男女對應)</span>
+        <div class="sub-label">🎹 流行與現代 (Pop & Modern)</div>
+        <div class="btn-group">
+            <button class="btn-vox" data-val="Whisper Pop, Breathy Vocals" onclick="toggleTag(this)">[女] 氣聲臥室</button>
+            <button class="btn-vox" data-val="Soft Pop Vocals, Emotional" onclick="toggleTag(this)">[男] 溫柔少年</button>
+            <button class="btn-vox" data-val="Anime Vocals, High-pitched" onclick="toggleTag(this)">[女] 二次元/加速</button>
+            <button class="btn-vox" data-val="Autotune Vocals, Melodic" onclick="toggleTag(this)">[男] 流行電音</button>
+        </div>
+        <div class="sub-label">🎸 搖滾與懷舊 (Rock & Retro)</div>
+        <div class="btn-group">
+            <button class="btn-vox" data-val="Female Rock Vocals, Powerful" onclick="toggleTag(this)">[女] 鐵肺高音</button>
+            <button class="btn-vox" data-val="Male Grunge Vocals, Gritty" onclick="toggleTag(this)">[男] 粗獷煙嗓</button>
+            <button class="btn-vox" data-val="70s Soul Diva, Warmth" onclick="toggleTag(this)">[女] 70s 靈魂</button>
+            <button class="btn-vox" data-val="70s Soft Rocker" onclick="toggleTag(this)">[男] 70s 軟搖滾</button>
+        </div>
+        <div class="sub-label">🎤 節奏與嘻哈 (R&B & HipHop)</div>
+        <div class="btn-group">
+            <button class="btn-vox" data-val="Soul Diva, R&B Runs" onclick="toggleTag(this)">[女] 靈魂轉音</button>
+            <button class="btn-vox" data-val="Smooth R&B Vocals, Falsetto" onclick="toggleTag(this)">[男] 深情 R&B</button>
+            <button class="btn-vox" data-val="Female Rap, Sassy" onclick="toggleTag(this)">[女] 個性饒舌</button>
+            <button class="btn-vox" data-val="Male Melodic Rap, Trap" onclick="toggleTag(this)">[男] 旋律饒舌</button>
+        </div>
+        <div class="sub-label">🏛️ 古典與美聲 (Classical)</div>
+        <div class="btn-group">
+            <button class="btn-vox" data-val="Coloratura Soprano, Opera" onclick="toggleTag(this)">[女] 歌劇女高音</button>
+            <button class="btn-vox" data-val="Operatic Tenor, Powerful" onclick="toggleTag(this)">[男] 歌劇男高音</button>
+        </div>
+    </div>
+
+    <div class="layer-box layer-5">
+        <span class="title">🏎️ Layer 6. 時間與速度 (Specs)</span>
+        <div class="sub-label">⏱️ 長度</div>
+        <div class="btn-group">
+            <button class="btn-tempo" data-val="[15 Seconds], [Quick Fade Out]" onclick="toggleTag(this)">15秒 (限動)</button>
+            <button class="btn-tempo" data-val="[30 Seconds], [Hard Stop]" onclick="toggleTag(this)">30秒 (廣告)</button>
+            <button class="btn-tempo" data-val="[3 Minutes], [Radio Edit]" onclick="toggleTag(this)">3分 (完整)</button>
+            <button class="btn-tempo" data-val="[Seamless Loop]" onclick="toggleTag(this)">無限循環 (Loop)</button>
+        </div>
+        <div class="sub-label">🏎️ 速度</div>
+        <div class="btn-group">
+            <button class="btn-tempo" data-val="65 BPM, Largo" onclick="toggleTag(this)">65 (慢板)</button>
+            <button class="btn-tempo" data-val="90 BPM, Groove" onclick="toggleTag(this)">90 (嘻哈/Vlog)</button>
+            <button class="btn-tempo" data-val="120 BPM" onclick="toggleTag(this)">120 (流行)</button>
+            <button class="btn-tempo" data-val="140 BPM, High Energy" onclick="toggleTag(this)">140 (運動)</button>
+            <button class="btn-tempo" data-val="175 BPM, Fast" onclick="toggleTag(this)">175 (Phonk)</button>
+        </div>
+    </div>
+
     <div class="layer-box layer-3">
-        <span class="title">Layer 5. 器樂配器 (Instruments)</span>
+        <span class="title">🎻 Layer 7. 器樂細節 (Instruments - 選填)</span>
         <div class="sub-label">經典與原聲</div>
         <div class="btn-group">
             <button class="btn-inst" data-val="Grand Piano" onclick="toggleTag(this)">平台鋼琴</button>
@@ -210,51 +230,9 @@
         </div>
     </div>
 
-    <div class="layer-box layer-4">
-        <span class="title">Layer 4. 情感敘事 (Mood)</span>
-        <div class="btn-group">
-            <button class="btn-emo" data-val="Major Key, Uplifting, Playful" onclick="toggleTag(this)">☀️ Dopamine Rush</button>
-            <button class="btn-emo" data-val="Minor Key, Melancholic, Lonely" onclick="toggleTag(this)">💧 3AM Thoughts</button>
-            <button class="btn-emo" data-val="Epic Build Up, Triumphant, Powerful" onclick="toggleTag(this)">⚔️ Main Character</button>
-            <button class="btn-emo" data-val="Nostalgic, Warm, Bittersweet" onclick="toggleTag(this)">🍂 Core Memory</button>
-            <button class="btn-emo" data-val="Dark Tension, Suspenseful, Dangerous" onclick="toggleTag(this)">🔥 Villain Arc</button>
-            <button class="btn-emo" data-val="Ethereal, Dreamy, Magical" onclick="toggleTag(this)">✨ POV: Dreamscape</button>
-        </div>
-    </div>
-
-    <div class="layer-box layer-5">
-        <span class="title">Layer 7. 時間與速度 (Time & Tempo)</span>
-        <div class="sub-label">⏱️ 流量規格長度</div>
-        <div class="btn-group">
-            <button class="btn-tempo" data-val="[15 Seconds], [Quick Fade Out]" onclick="toggleTag(this)">15秒 (限動)</button>
-            <button class="btn-tempo" data-val="[30 Seconds], [Hard Stop]" onclick="toggleTag(this)">30秒 (廣告)</button>
-            <button class="btn-tempo" data-val="[3 Minutes], [Radio Edit]" onclick="toggleTag(this)">3分 (完整)</button>
-            <button class="btn-tempo" data-val="[Seamless Loop]" onclick="toggleTag(this)">無限循環 (Loop)</button>
-        </div>
-        <div class="sub-label">🏎️ 功能性速度</div>
-        <div class="btn-group">
-            <button class="btn-tempo" data-val="65 BPM, Largo" onclick="toggleTag(this)">65 (慢板)</button>
-            <button class="btn-tempo" data-val="90 BPM, Groove" onclick="toggleTag(this)">90 (嘻哈/Vlog)</button>
-            <button class="btn-tempo" data-val="120 BPM" onclick="toggleTag(this)">120 (流行)</button>
-            <button class="btn-tempo" data-val="140 BPM, High Energy" onclick="toggleTag(this)">140 (運動)</button>
-            <button class="btn-tempo" data-val="175 BPM, Fast" onclick="toggleTag(this)">175 (Phonk)</button>
-        </div>
-    </div>
-
-    <div class="layer-box layer-6">
-        <span class="title">Layer 6. 人聲 (Vocals)</span>
-        <div class="btn-group">
-            <button class="btn-vox" data-val="Coloratura Soprano" onclick="toggleTag(this)">[女] 花腔女高音</button>
-            <button class="btn-vox" data-val="Operatic Tenor" onclick="toggleTag(this)">[男] 歌劇男高音</button>
-            <button class="btn-vox" data-val="70s Soul Diva" onclick="toggleTag(this)">[女] 70s 靈魂</button>
-            <button class="btn-vox" data-val="90s Grunge Vocals" onclick="toggleTag(this)">[男] 90s 粗獷</button>
-            <button class="btn-vox" data-val="Whisper Pop" onclick="toggleTag(this)">[女] 氣聲/臥室</button>
-            <button class="btn-vox" data-val="Melodic Rap, Auto-tune" onclick="toggleTag(this)">[男] 旋律饒舌</button>
-        </div>
-    </div>
-
     <div class="layer-box layer-8">
-        <span class="title">Layer 8. 濾鏡 (Filters)</span>
+        <span class="title">🎛️ Layer 8. 混音濾鏡與排除 (Post-Production)</span>
+        <div class="sub-label">🎛️ 風格濾鏡</div>
         <div class="btn-group">
             <button class="btn-mix" data-val="Vintage Vinyl, Crackle" onclick="toggleTag(this)">📼 復古黑膠</button>
             <button class="btn-mix" data-val="Lo-fi, Muffled" onclick="toggleTag(this)">📻 悶音/Lo-fi</button>
@@ -263,16 +241,48 @@
             <button class="btn-mix" data-val="Live Recording, Crowd" onclick="toggleTag(this)">🎤 現場</button>
             <button class="btn-mix" data-val="Dry Sound, Close-mic" onclick="toggleTag(this)">🎙️ 錄音室乾聲</button>
         </div>
-        <div class="sub-label" style="color:#eb4d4b;">⛔ 排除 (必要)</div>
+        <div class="sub-label" style="color:#eb4d4b;">⛔ 強力排除 (點擊啟用)</div>
         <div class="btn-group">
-            <button class="btn-neg" data-val="[No Drums]" onclick="toggleTag(this)">🚫 無鼓聲</button>
-            <button class="btn-neg" data-val="[Instrumental]" onclick="toggleTag(this)">🚫 純音樂</button>
+            <button class="btn-neg" data-val="[Instrumental], [No Vocals]" onclick="toggleTag(this)">🚫 純音樂</button>
+            <button class="btn-neg" data-val="[No Drums], [No Percussion]" onclick="toggleTag(this)">🚫 無節奏</button>
+            <button class="btn-neg" data-val="[Acoustic], [No Electronic]" onclick="toggleTag(this)">🚫 純原聲</button>
+            <button class="btn-neg" data-val="[No Rap]" onclick="toggleTag(this)">🚫 無饒舌</button>
+            <button class="btn-neg" data-val="[Clean], [No Noise]" onclick="toggleTag(this)">🚫 無雜訊</button>
+            <button class="btn-neg" data-val="[Simple], [Minimalist]" onclick="toggleTag(this)">🚫 極簡化</button>
         </div>
+    </div>
+
+    <div class="tips-container">
+        <details>
+            <summary>✨ 點此查看：5 個讓 AI 更聽話的黃金法則</summary>
+            <div class="tips-content">
+                <div class="tip-item">
+                    <strong>1. 給畫面</strong> 具體描繪聲音場景
+                    <span class="tip-ex">例: Rain sounds, Lonely street, Coffee shop ambiance</span>
+                </div>
+                <div class="tip-item">
+                    <strong>2. 定主題</strong> 告訴 AI 這是什麼歌
+                    <span class="tip-ex">例: About a broken robot, Wedding entrance music</span>
+                </div>
+                <div class="tip-item">
+                    <strong>3. 選主角</strong> 指定獨奏樂器
+                    <span class="tip-ex">例: Saxophone Solo, Distorted Guitar Hero</span>
+                </div>
+                <div class="tip-item">
+                    <strong>4. 形容聲音</strong> 描述人聲的質感
+                    <span class="tip-ex">例: Raspy voice (沙啞), Breathy (氣音), Robotic (機器人)</span>
+                </div>
+                <div class="tip-item">
+                    <strong>5. 特殊操作</strong> 強制控制結構
+                    <span class="tip-ex">例: [Silence] (靜音), [Spoken Word] (念白), [Acappella] (清唱)</span>
+                </div>
+            </div>
+        </details>
     </div>
 
     <div class="result-area">
         <div style="margin-bottom:8px;">
-            <input type="text" id="customInput" class="custom-input" placeholder="✨ 補充指令 (例: Rain sounds, Broken robot...)" oninput="render()">
+            <input type="text" id="customInput" class="custom-input" placeholder="✨ 補充指令... (點擊上方紫色選單查看技巧)" oninput="render()">
         </div>
         <div style="display:flex; justify-content:space-between; color:#f1c40f; font-weight:bold; margin-bottom:5px; font-size:14px;">
             <span>📜 最終生成指令：</span>
@@ -282,20 +292,31 @@
         <div id="charCount" class="char-counter count-safe">0 / 500</div>
         <button class="copy-btn" onclick="copyText()">📋 複製指令 (Copy)</button>
     </div>
+    
+    <a href="https://www.instagram.com/" target="_blank" style="
+        position: fixed; bottom: 120px; right: 20px;
+        background: #e17055; color: white;
+        padding: 10px 15px; border-radius: 50px;
+        text-decoration: none; font-weight: bold; font-size: 14px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 10000;
+        display: flex; align-items: center; gap: 5px; opacity: 0.9;
+    ">
+        💬 回饋
+    </a>
 
     <script>
         let struct = "";
         let tags = [];
 
-        // 黃金配方 (已優化字數)
+        // 黃金配方
         const recipes = {
-            'intimate': ['[Atmospheric Intro], [Main Theme], [Emotional Climax], [Fade Out]', 'Minimalism', 'Minor Key, Melancholic, Lonely', 'Solo Cello', 'Solo Violin', 'Dry Sound, Close-mic', '[Instrumental]', '65 BPM, Largo', '[3 Minutes]'],
-            'epic': ['[Grand Overture], [Soloist Entry], [Complex Development], [Grand Finale]', 'Film Score', 'Minor Key, Emotional', 'Epic Build Up, Triumphant, Heroic', 'String Quartet', 'Hans Zimmer Style', 'High Fidelity', '[Instrumental]', '90 BPM'],
-            'cyberpunk': ['[Catchy Hook], [Drop], [High Energy Chorus], [Sudden End]', 'Modern Pop, EDM', 'Dark Tension, Dangerous', 'Synthesizer Lead', 'Heavy 808 Bass', 'Huge Reverb', '[Instrumental]', '120 BPM'],
-            'ghibli': ['[Atmospheric Intro], [Main Theme], [Emotional Climax], [Fade Out]', 'Film Score', 'Anime Opening', 'Major Key, Uplifting', 'Grand Piano', 'String Quartet', 'High Fidelity', '[Instrumental]', '90 BPM'],
-            'phonk': ['[Catchy Hook], [Drop], [Sudden End]', 'Drift Phonk, Cowbell', 'Dark Tension, Dangerous', 'Phonk Cowbell', 'Heavy 808 Bass', 'Heavily Distorted', '[Instrumental]', '175 BPM'],
-            'lofi': ['[Soft Intro], [Steady Rhythm], [Seamless Loop]', 'Lofi, Chillout', 'Nostalgic, Warm', 'Grand Piano', 'Lo-fi Vinyl Crackle', 'Muffled', '[Instrumental]', '90 BPM'],
-            'kpop': ['[Intro], [Verse], [Chorus], [Bridge], [Outro]', 'Modern Pop, EDM', 'K-Pop, Catchy Hook', 'Major Key, High Energy', 'Synthesizer Lead', 'Trap Drum Machine', 'High Fidelity', '120 BPM'],
+            'intimate': ['[Atmospheric Intro], [Main Theme], [Emotional Climax], [Fade Out]', 'Minimalism', 'Minor Key, Melancholic, Lonely', 'Solo Cello', 'Solo Violin', 'Dry Sound, Close-mic', '[Instrumental], [No Vocals]', '65 BPM, Largo', '[3 Minutes]'],
+            'epic': ['[Grand Overture], [Soloist Entry], [Complex Development], [Grand Finale]', 'Film Score', 'Minor Key, Emotional', 'Epic Build Up, Triumphant, Heroic', 'String Quartet', 'Hans Zimmer Style', 'High Fidelity', '[Instrumental], [No Vocals]', '90 BPM'],
+            'cyberpunk': ['[Catchy Hook], [Drop], [High Energy Chorus], [Sudden End]', 'Modern Pop, EDM', 'Dark Tension, Dangerous', 'Synthesizer Lead', 'Heavy 808 Bass', 'Huge Reverb', '[Instrumental], [No Vocals]', '120 BPM'],
+            'ghibli': ['[Atmospheric Intro], [Main Theme], [Emotional Climax], [Fade Out]', 'Film Score', 'Anime Opening', 'Major Key, Uplifting', 'Grand Piano', 'String Quartet', 'High Fidelity', '[Instrumental], [No Vocals]', '90 BPM'],
+            'phonk': ['[Catchy Hook], [Drop], [Sudden End]', 'Drift Phonk, Cowbell', 'Dark Tension, Dangerous', 'Phonk Cowbell', 'Heavy 808 Bass', 'Heavily Distorted', '[Instrumental], [No Vocals]', '175 BPM'],
+            'lofi': ['[Soft Intro], [Steady Rhythm], [Seamless Loop]', 'Lofi, Chillout', 'Nostalgic, Warm', 'Grand Piano', 'Lo-fi Vinyl Crackle', 'Muffled', '[Instrumental], [No Vocals]', '90 BPM'],
+            'kpop': ['[Intro], [Verse], [Chorus], [Bridge], [Outro]', 'Modern Pop, EDM', 'K-Pop, Catchy Hook', 'Major Key, High Energy', 'Synthesizer Lead', 'Trap Drum Machine', 'High Fidelity', 'Whisper Pop, Breathy Vocals', '120 BPM'],
             'latin': ['[Catchy Hook], [Drop], [Sudden End]', 'Latin Pop, Reggaeton', 'Urbano', 'Acoustic Guitar', 'Live Drum Kit', 'High Fidelity', '120 BPM']
         };
 
@@ -336,35 +357,26 @@
             tags = [];
             document.getElementById('customInput').value = "";
             document.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+            document.querySelector('details').removeAttribute('open');
             render();
         }
 
         function render() {
             let res = "";
             let customText = document.getElementById('customInput').value.trim();
-            
-            // 瘦身邏輯：去除 "Structure:" 和 "Style:" 標籤，改用換行分隔
-            if (struct) res += struct + "\n"; // 結構自帶括弧，換行即可
-            
+            if (struct) res += struct + "\n";
             let allTags = [...tags];
             if (customText) allTags.push(customText);
-            
-            if (allTags.length > 0) res += allTags.join(", "); // 風格用逗號分隔，Suno 讀得懂
-            
+            if (allTags.length > 0) res += allTags.join(", ");
             const output = document.getElementById('output');
             output.value = res;
-            
-            // 更新字數統計
             updateCharCount(res.length);
         }
 
         function updateCharCount(len) {
             const counter = document.getElementById('charCount');
             counter.innerText = len + " / 500";
-            
-            // 移除舊顏色
             counter.classList.remove('count-safe', 'count-warning', 'count-danger');
-            
             if (len >= 500) {
                 counter.classList.add('count-danger');
                 counter.innerText = "⚠️ " + len + " / 500 (已超標)";
