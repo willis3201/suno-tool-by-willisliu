@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI音樂指令生成器 by superL (V24.2)</title>
+    <title>AI音樂指令生成器 by superL (V24.3)</title>
     <style>
         /* --- 基礎設定 --- */
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f5f6fa; padding: 15px; padding-bottom: 600px; max-width: 1000px; margin: 0 auto; color: #2d3436; -webkit-text-size-adjust: 100%; }
@@ -134,10 +134,10 @@
 </head>
 <body>
 
-    <h2>🎻 AI音樂指令生成器 by superL (V24.2)</h2>
+    <h2>🎻 AI音樂指令生成器 by superL (V24.3)</h2>
 
     <div class="layer-box layer-recipe">
-        <span class="title">🏆 Layer 0. 黃金配方</span>
+        <span class="title">🏆 Layer 0. 黃金配方 (修正版)</span>
         <span class="subtitle">「大師的私房菜單，一鍵注入靈魂。」</span>
         <div class="btn-group">
             <button class="btn-recipe" onclick="applyPreset('intimate')">1. 情感獨奏</button>
@@ -829,10 +829,27 @@
             window.location.href = `mailto:willis3201@gmail.com?subject=${subject}&body=${body}`;
         }
         
+        // --- 核心修復：Layer 0 真實邏輯 (V24.3 FIXED) ---
         function applyPreset(name) {
-             // 簡化版 preset，只做示範
              resetAll();
-             tags.push(name === 'cyberpunk' ? 'Cyberpunk, Synthwave' : 'Pop');
+             const presets = {
+                 'intimate': { prompt: 'Acoustic Guitar, Soft Vocals, Emotional, Ballad, Intimate Atmosphere, Minimalist', desc: '情感獨奏' },
+                 'epic': { prompt: 'Epic Orchestral, Hans Zimmer Style, Brass Section, Heroic, Cinematic, Big Percussion', desc: '史詩動作' },
+                 'cyberpunk': { prompt: 'Synthwave, Cyberpunk, Neon City, Blade Runner Vibe, Analog Synths, Futuristic', desc: '賽博未來' },
+                 'ghibli': { prompt: 'Joe Hisaishi Style, Orchestral, Piano, Violin, Magical, Whimsical, Fantasy, Emotional', desc: '吉卜力風' },
+                 'phonk': { prompt: 'Drift Phonk, Cowbell, High Tempo, Distorted Bass, Aggressive, Memphis Rap', desc: '流量 Phonk' },
+                 'lofi': { prompt: 'Lofi Hip Hop, Chillhop, Vinyl Crackle, Mellow Piano, Study Beats, Relaxing', desc: '深夜 Lofi' },
+                 'kpop': { prompt: 'K-Pop, Catchy Hook, Upbeat, Idol Vocals, Dance Pop, High Production, Korean Style', desc: '韓流 K-Pop' },
+                 'latin': { prompt: 'Reggaeton, Latin Pop, Summer Vibe, Danceable, Spanish Guitar, Dembow Rhythm', desc: '熱情拉丁' }
+             };
+
+             if (presets[name]) {
+                 tags.push(presets[name].prompt);
+                 // 模擬「選中」效果 (Optional visual feedback)
+                 document.getElementById('customInput').placeholder = `✨ 已套用黃金配方：${presets[name].desc}`;
+             } else {
+                 tags.push('Pop'); // Fallback
+             }
              render();
         }
     </script>
