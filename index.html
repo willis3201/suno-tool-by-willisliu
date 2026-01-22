@@ -3,854 +3,684 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI音樂指令生成器 by superL (V24.3)</title>
+    <title>AI 時光機 V27.0 (Time Machine & Structure Blocks)</title>
     <style>
-        /* --- 基礎設定 --- */
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f5f6fa; padding: 15px; padding-bottom: 600px; max-width: 1000px; margin: 0 auto; color: #2d3436; -webkit-text-size-adjust: 100%; }
-        h2 { text-align: center; border-bottom: 3px solid #b2bec3; padding-bottom: 15px; margin-bottom: 20px; font-size: 1.5rem; }
-
-        /* --- 區塊樣式 --- */
-        .layer-box { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; border-left: 6px solid #ccc; transition: all 0.3s ease; }
-        .layer-recipe { border-left-color: #f1c40f; background: linear-gradient(to right, #fff, #fffbf0); border: 2px solid #f1c40f; }
-        
-        .layer-neural { border-left-color: #6c5ce7; background: #2d3436; color: #dfe6e9; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        
-        .layer-1 { border-left-color: #0984e3; }
-        .layer-2 { border-left-color: #d63031; }
-        .layer-2b { border-left-color: #00b894; }
-        .layer-4 { border-left-color: #e84393; }
-        .layer-6 { border-left-color: #fd79a8; }
-        .layer-5 { border-left-color: #e17055; }
-        .layer-3 { border-left-color: #6c5ce7; }
-        .layer-8 { border-left-color: #2d3436; }
-
-        .title { font-weight: 800; font-size: 16px; margin-bottom: 4px; display: block; }
-        .subtitle { font-size: 12px; color: #636e72; margin-bottom: 12px; display: block; font-style: italic; }
-        .layer-neural .subtitle { color: #b2bec3; }
-        .btn-group { display: flex; flex-wrap: wrap; gap: 8px; }
-
-        /* --- 按鈕 --- */
-        button {
-            padding: 8px 12px; border: 1px solid #dfe6e9; background: white; border-radius: 6px;
-            cursor: pointer; font-size: 13px; font-weight: 600; color: #636e72; transition: all 0.1s;
-            flex: 1 1 auto; text-align: center; min-width: 80px;
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --highlight: #00cec9; /* 聽覺青 */
+            --visual: #e17055;    /* 視覺橘 */
+            --vocal: #fd79a8;     /* 人聲粉 */
+            --mandarin: #e84393;  /* 華語紅 */
+            --japan: #6c5ce7;     /* 日語紫 */
+            --english: #0984e3;   /* 英語藍 */
+            --param: #74b9ff;     /* 參數藍 */
+            --text: #dfe6e9;
+            --border: #333;
+            --block-bg: #2d3436;
         }
-        button:active { transform: scale(0.98); }
-        .btn-recipe { border-color: #f1c40f; color: #d35400; background: #fff; box-shadow: 0 2px 4px rgba(241, 196, 15, 0.2); }
-        .btn-recipe:hover { background: #f1c40f; color: white; }
 
-        /* --- 激活狀態 --- */
-        .active { color: white !important; border-color: transparent !important; }
-        
-        .btn-struct.active { background: #0984e3; }
-        .btn-region.active { background: #00b894; }
-        .btn-inst.active { background: #6c5ce7; }
-        .btn-emo.active { background: #e84393; }
-        .btn-length.active { background: #e17055; }
-        .btn-bpm.active { background: #d35400; }
-        .btn-vox.active { background: #fd79a8; }
-        .btn-mix.active { background: #2d3436; }
-        .btn-neg.active { background: #eb4d4b; }
-        .btn-main-genre.active { background: #d63031; transform: scale(1.02); box-shadow: 0 4px 8px rgba(214, 48, 49, 0.2); }
-
-        /* --- 神經網絡 UI --- */
-        .neural-display { display: flex; flex-direction: column; gap: 15px; }
-        .neural-breadcrumbs { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; font-size: 13px; color: #a29bfe; margin-bottom: 5px; }
-        .crumb { opacity: 0.7; cursor: pointer; text-decoration: underline; }
-        .crumb:hover { opacity: 1; color: #fff; }
-        .node-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        .neural-node { background: rgba(255,255,255,0.05); border: 1px solid #6c5ce7; color: #dfe6e9; padding: 15px 10px; border-radius: 8px; position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.2s; min-height: 60px; }
-        .neural-node:hover { background: rgba(108, 92, 231, 0.2); border-color: #a29bfe; transform: translateY(-2px); }
-        .node-icon { font-size: 20px; margin-bottom: 5px; }
-        .node-label { font-weight: bold; font-size: 14px; }
-        .node-desc { font-size: 11px; opacity: 0.7; margin-top: 3px; font-weight: normal; }
-
-        /* --- 子風格按鈕 --- */
-        .sub-genre-area { margin-top: 15px; padding-top: 15px; border-top: 1px dashed #eee; display: none; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
-        .sub-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px; border: 1px solid #fab1a0; background: #fff5f3; color: #d63031; border-radius: 8px; text-align: center; height: auto; }
-        .sub-btn.active { background: #d63031; color: white; border-color: #b71540; }
-        .sub-name { font-size: 14px; font-weight: bold; margin-bottom: 4px; }
-        .sub-desc { font-size: 11px; opacity: 0.8; font-weight: normal; line-height: 1.3; }
-        .sub-label { width: 100%; font-size: 12px; font-weight: bold; color: #b2bec3; margin: 10px 0 5px 0; border-bottom: 1px dashed #e1e1e1; padding-bottom: 2px; }
-
-        /* --- 🧪 化學反應實驗室 --- */
-        .chemistry-lab { background: #2d3436; color: #fff; padding: 15px; border-radius: 12px; margin-bottom: 15px; border-left: 6px solid #a29bfe; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .lab-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap:10px; }
-        .lab-title { color: #a29bfe; font-weight: bold; font-size: 14px; display: flex; align-items: center; gap: 5px; }
-        
-        /* 圖例 (Legend) */
-        .reaction-legend { display: flex; gap: 8px; font-size: 11px; }
-        .legend-item { padding: 2px 6px; border-radius: 4px; border: 1px solid; }
-        .legend-item.classic { border-color: #00b894; color: #55efc4; background: rgba(0, 184, 148, 0.1); }
-        .legend-item.fusion { border-color: #a29bfe; color: #d1ccc0; background: rgba(162, 155, 254, 0.1); }
-        .legend-item.warn { border-color: #ffeaa7; color: #ffeaa7; background: rgba(253, 203, 110, 0.1); }
-
-        .lab-content { font-size: 13px; line-height: 1.6; min-height: 20px; }
-        .reaction-item { margin-bottom: 6px; padding-left: 10px; border-left: 3px solid transparent; }
-        .reaction-classic { border-left-color: #00b894; color: #55efc4; }
-        .reaction-fusion { border-left-color: #a29bfe; color: #d1ccc0; }
-        .reaction-conflict { border-left-color: #ffeaa7; color: #ffeaa7; font-weight: bold; }
-
-        /* --- 🎛️ 雙模態監控室 (Monitor) --- */
-        .monitor-area {
-            background: #2d3436; border-radius: 12px 12px 0 0; padding: 15px;
-            /* 修正：監控室高度確保不被擋住 */
-            position: fixed; bottom: 230px; left: 0; width: 100%; box-sizing: border-box;
-            border-top: 4px solid #00b894; color: white; z-index: 9998;
-            transition: all 0.3s ease; box-shadow: 0 -5px 15px rgba(0,0,0,0.2);
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            background-color: var(--bg-color); 
+            color: var(--text); 
+            padding: 20px; 
+            max-width: 900px; 
+            margin: 0 auto; 
+            padding-bottom: 400px; /* 預留底部空間 */
         }
-        .monitor-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .monitor-title { font-weight: bold; font-size: 14px; color: #00b894; }
-        .monitor-toggle { background: rgba(255,255,255,0.1); border: 1px solid #636e72; color: #dfe6e9; padding: 4px 8px; border-radius: 15px; font-size: 11px; cursor: pointer; }
-        
-        /* 模式 A: 聚焦儀表板 */
-        .focus-bar-container { width: 100%; height: 10px; background: #636e72; border-radius: 5px; position: relative; overflow: hidden; margin-bottom: 5px; }
-        .focus-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #81ecec, #00b894); transition: width 0.5s ease; }
-        .focus-status { display: flex; justify-content: space-between; font-size: 11px; color: #b2bec3; margin-bottom: 5px; }
-        .ghost-chips { display: flex; gap: 5px; flex-wrap: wrap; }
-        .ghost-chip { padding: 2px 6px; border: 1px dashed #636e72; color: #636e72; border-radius: 4px; font-size: 10px; cursor: pointer; transition: all 0.2s; }
-        .ghost-chip:hover { border-color: #00b894; color: #00b894; }
 
-        /* 模式 B: 雷達圖 */
-        .radar-container { display: none; justify-content: center; align-items: center; height: 120px; }
-        svg { overflow: visible; }
-        .radar-axis { stroke: #636e72; stroke-width: 1; }
-        .radar-shape { fill: rgba(0, 184, 148, 0.4); stroke: #00b894; stroke-width: 2; transition: all 0.5s ease; }
+        h2 { 
+            text-align: center; 
+            color: var(--highlight); 
+            font-weight: 300; 
+            letter-spacing: 2px;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 15px;
+        }
 
-        /* --- 結果區 --- */
-        .result-area { position: fixed; bottom: 0; left: 0; width: 100%; background-color: #2d3436; padding: 15px; border-top: 1px solid #444; box-shadow: 0 -5px 20px rgba(0,0,0,0.3); z-index: 9999; box-sizing: border-box; }
-        .custom-input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 6px; border: none; background: #dfe6e9; color: #2d3436; font-size: 14px; box-sizing: border-box; }
-        textarea { width: 100%; height: 60px; background: #353b48; color: #55efc4; border: 1px solid #555; padding: 10px; border-radius: 8px; font-size: 14px; font-family: monospace; resize: none; box-sizing: border-box; }
-        .char-counter { text-align: right; font-size: 12px; font-weight: bold; margin-top: 5px; font-family: monospace; }
-        .count-safe { color: #00b894; } .count-warning { color: #fdcb6e; } .count-danger { color: #ff7675; }
+        /* 區塊通用 */
+        .section-box {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            border: 1px solid var(--border);
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .section-box.disabled {
+            opacity: 0.4;
+            pointer-events: none;
+        }
         
-        /* 郵件發送區 */
-        .email-section { display: flex; gap: 10px; margin-top: 10px; align-items: center; }
-        .email-input { flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #636e72; background: #2d3436; color: white; font-size: 13px; }
-        .send-btn { flex: 0.6; padding: 10px; background: #0984e3; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
-        .copy-btn { flex: 1; padding: 10px; background: #00b894; color: white; font-weight: bold; font-size: 14px; border: none; border-radius: 6px; cursor: pointer; }
+        .section-title {
+            font-size: 13px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* 網格系統 */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+        }
+
+        .grid-mini {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        /* 按鈕樣式 */
+        .choice-btn {
+            background: #2d2d2d;
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 10px 5px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            text-align: center;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 50px;
+        }
+
+        .choice-btn:hover { background: #3d3d3d; }
+        
+        /* 語言顏色 */
+        .btn-lang.active[data-lang="cn"] { background: rgba(232, 67, 147, 0.2); border-color: var(--mandarin); color: var(--mandarin); }
+        .btn-lang.active[data-lang="jp"] { background: rgba(108, 92, 231, 0.2); border-color: var(--japan); color: var(--japan); }
+        .btn-lang.active[data-lang="en"] { background: rgba(9, 132, 227, 0.2); border-color: var(--english); color: var(--english); }
+
+        /* 一般激活 */
+        .choice-btn.active { 
+            border-color: var(--highlight); 
+            background: rgba(0, 206, 201, 0.1); 
+            color: var(--highlight);
+            font-weight: bold;
+        }
+
+        .btn-sub { font-size: 10px; opacity: 0.6; margin-top: 4px; font-weight: normal; }
+
+        /* 🧱 結構積木樣式 (新功能) */
+        .structure-grid {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .struct-block {
+            background: var(--block-bg);
+            border: 1px solid var(--border);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            user-select: none;
+            transition: all 0.2s;
+        }
+
+        .struct-block:hover { background: #3d3d3d; }
+
+        .struct-block.checked {
+            background: rgba(0, 206, 201, 0.15);
+            border-color: var(--highlight);
+            color: var(--highlight);
+        }
+
+        .checkbox-fake {
+            width: 12px; height: 12px;
+            border: 1px solid #777;
+            border-radius: 3px;
+            display: inline-block;
+            position: relative;
+        }
+
+        .struct-block.checked .checkbox-fake {
+            background: var(--highlight);
+            border-color: var(--highlight);
+        }
+
+        /* 輸出區 */
+        .output-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #111;
+            border-top: 3px solid var(--highlight);
+            padding: 15px;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
+            z-index: 100;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .output-group { flex: 1; display: flex; flex-direction: column; }
+        .output-label { font-size: 11px; color: #777; margin-bottom: 4px; font-weight: bold; text-transform: uppercase; display: flex; justify-content: space-between; }
+
+        textarea {
+            width: 100%;
+            background: #000;
+            border: 1px solid #333;
+            color: #fff;
+            padding: 8px;
+            border-radius: 6px;
+            font-family: monospace;
+            resize: none;
+            box-sizing: border-box; 
+            font-size: 11px;
+        }
+        
+        #style-box { height: 45px; color: var(--highlight); }
+        #lyrics-box { height: 70px; color: #a29bfe; border-color: #a29bfe; }
+        #params-box { height: 35px; color: var(--param); border-color: var(--param); }
+
+        .action-row { display: flex; gap: 10px; margin-top: 5px; }
+        .action-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .btn-copy { background: var(--highlight); color: #000; }
+        .btn-reset { background: #333; color: #fff; flex: 0.3; }
+
+        .tag-pill {
+            display: inline-block;
+            padding: 2px 6px;
+            background: #333;
+            border-radius: 4px;
+            font-size: 10px;
+            margin-right: 4px;
+            color: #ccc;
+        }
+
     </style>
 </head>
 <body>
 
-    <h2>🎻 AI音樂指令生成器 by superL (V24.3)</h2>
+    <h2>時光機 <span style="font-size:0.5em; opacity:0.5;">V27.0</span></h2>
 
-    <div class="layer-box layer-recipe">
-        <span class="title">🏆 Layer 0. 黃金配方 (修正版)</span>
-        <span class="subtitle">「大師的私房菜單，一鍵注入靈魂。」</span>
-        <div class="btn-group">
-            <button class="btn-recipe" onclick="applyPreset('intimate')">1. 情感獨奏</button>
-            <button class="btn-recipe" onclick="applyPreset('epic')">2. 史詩動作</button>
-            <button class="btn-recipe" onclick="applyPreset('cyberpunk')">3. 賽博未來</button>
-            <button class="btn-recipe" onclick="applyPreset('ghibli')">4. 吉卜力風</button>
-            <button class="btn-recipe" onclick="applyPreset('phonk')">5. 流量 Phonk</button>
-            <button class="btn-recipe" onclick="applyPreset('lofi')">6. 深夜 Lofi</button>
-            <button class="btn-recipe" onclick="applyPreset('kpop')">7. 韓流 K-Pop</button>
-            <button class="btn-recipe" onclick="applyPreset('latin')">8. 熱情拉丁</button>
+    <div class="section-box">
+        <div class="section-title"><span>1. 選擇語言軌道 (Orbit)</span></div>
+        <div class="grid-container" style="grid-template-columns: repeat(3, 1fr);">
+            <button class="choice-btn btn-lang" data-lang="cn" onclick="selectLang('cn', this)">
+                <span>🇨🇳 華語/粵語</span>
+                <span class="btn-sub">情感與回憶</span>
+            </button>
+            <button class="choice-btn btn-lang" data-lang="jp" onclick="selectLang('jp', this)">
+                <span>🇯🇵 日本語</span>
+                <span class="btn-sub">昭和至平成</span>
+            </button>
+            <button class="choice-btn btn-lang" data-lang="en" onclick="selectLang('en', this)">
+                <span>🇺🇸 English</span>
+                <span class="btn-sub">經典與搖滾</span>
+            </button>
         </div>
     </div>
 
-    <div class="layer-box layer-neural">
-        <span class="title">🧠 Layer 1. 創作目的神經網絡 (Neural Nav)</span>
-        <span class="subtitle">「目標導航 (Destination) — 跟隨節點，AI 將自動為您配置最佳參數。」</span>
-        <div class="neural-display">
-            <div class="neural-breadcrumbs" id="neuralBreadcrumbs"><span>請選擇起點...</span></div>
-            <div class="node-container" id="neuralNodes"></div>
-            <div id="neuralStatus" style="font-size:12px; color:#55efc4; margin-top:5px; display:none;">🤖 AI 已自動配置相關參數！</div>
+    <div class="section-box disabled" id="section-era">
+        <div class="section-title">
+            <span>2. 進入年代 (Time Travel)</span>
+            <span id="label-era" style="color:var(--highlight)"></span>
+        </div>
+        <div class="grid-container" style="grid-template-columns: repeat(4, 1fr);">
+            <button class="choice-btn" onclick="selectEra('70s', this)">
+                <span>70s</span><span class="btn-sub" id="sub-70s">Vintage</span>
+            </button>
+            <button class="choice-btn" onclick="selectEra('80s', this)">
+                <span>80s</span><span class="btn-sub" id="sub-80s">Retro</span>
+            </button>
+            <button class="choice-btn" onclick="selectEra('90s', this)">
+                <span>90s</span><span class="btn-sub" id="sub-90s">Classic</span>
+            </button>
+            <button class="choice-btn" onclick="selectEra('00s', this)">
+                <span>00s</span><span class="btn-sub" id="sub-00s">Millennium</span>
+            </button>
         </div>
     </div>
 
-    <div class="layer-box layer-1">
-        <span class="title">📐 Layer 2. 歌曲結構骨架 (單選)</span>
-        <span class="subtitle">「故事的骨架 (Skeleton) — 決定這首歌的起承轉合。」</span>
-        <div class="btn-group">
-            <button class="btn-struct" data-val="[Intro], [Verse 1], [Pre-Chorus], [Chorus], [Verse 2], [Chorus], [Bridge], [Outro]" onclick="selectSingle(this, 'struct')">📻 廣播金曲 (完整)</button>
-            <button class="btn-struct" data-val="[Catchy Hook], [Fast Build Up], [Drop], [High Energy Chorus], [Sudden End]" onclick="selectSingle(this, 'struct')">📱 病毒爆發 (短版)</button>
-            <button class="btn-struct" data-val="[Atmospheric Intro], [Main Theme], [Slow Build Up], [Emotional Climax], [Fade Out]" onclick="selectSingle(this, 'struct')">🎬 起承轉合 (敘事)</button>
-            <button class="btn-struct" data-val="[Soft Intro], [Steady Rhythm], [Linear Progression], [No Sudden Changes], [Seamless Loop]" onclick="selectSingle(this, 'struct')">☕️ 平穩鋪底 (氛圍)</button>
-            <button class="btn-struct" data-val="[Grand Overture], [Soloist Entry], [Complex Development], [Cadenza], [Grand Finale]" onclick="selectSingle(this, 'struct')">🎻 複雜樂章 (古典)</button>
+    <div class="section-box disabled" id="section-vocal" style="border-left: 3px solid var(--vocal);">
+        <div class="section-title"><span>3. 靈魂選角 (Vocal Soul)</span></div>
+        <div class="grid-mini">
+            <button class="choice-btn" onclick="selectGender('male', this)">
+                <span>🙋🏻‍♂️ 男聲 (Male)</span>
+                <span class="btn-sub" id="desc-male">--</span>
+            </button>
+            <button class="choice-btn" onclick="selectGender('female', this)">
+                <span>🙋🏻‍♀️ 女聲 (Female)</span>
+                <span class="btn-sub" id="desc-female">--</span>
+            </button>
         </div>
     </div>
 
-    <div class="layer-box layer-2" id="layer-style">
-        <span class="title">🎹 Layer 3. 音樂風格流派</span>
-        <span class="subtitle">「風格培養皿 (The Context) — 一切化學反應的基底。」</span>
-        <div class="btn-group" id="mainGenreContainer">
-            <button class="btn-main-genre" onclick="renderSubGenres('pop_electronic', this)">🎹 流行電子</button>
-            <button class="btn-main-genre" onclick="renderSubGenres('hiphop_rb', this)">🎤 嘻哈節奏</button>
-            <button class="btn-main-genre" onclick="renderSubGenres('rock_alt', this)">🎸 搖滾另類</button>
-            <button class="btn-main-genre" onclick="renderSubGenres('folk_acoustic', this)">🌲 民謠鄉村</button>
-            <button class="btn-main-genre" onclick="renderSubGenres('jazz_blues', this)">🎷 爵士藍調</button>
-            <button class="btn-main-genre" onclick="renderSubGenres('classical_cinematic', this)">🎻 古典史詩</button>
-            <button class="btn-main-genre" onclick="renderSubGenres('latin_world', this)">🏝️ 拉丁世界</button>
-            <button class="btn-main-genre" onclick="renderSubGenres('ambient_lofi', this)">☁️ 氛圍低傳真</button>
+    <div class="section-box disabled" id="section-struct">
+        <div class="section-title">
+            <span>4. 結構積木 (Structure Blocks)</span>
+            <span style="font-size:10px; color:#666;">點擊切換</span>
         </div>
-        <div id="subGenreDisplay" class="sub-genre-area"></div>
-    </div>
-
-    <div class="layer-box layer-2b">
-        <span class="title">🌍 Layer 4. 地區流量密碼</span>
-        <span class="subtitle">「文化的香料 (Spice) — 讓音樂帶有特定地區的色彩。」</span>
-        <div class="btn-group">
-            <button class="btn-region" data-val="K-Pop, Catchy Hook, Korean Lyrics" onclick="toggleTag(this)">🇰🇷 韓流 K-Pop</button>
-            <button class="btn-region" data-val="J-Pop, Anime Opening, Japanese Lyrics" onclick="toggleTag(this)">🇯🇵 日系二次元</button>
-            <button class="btn-region" data-val="US Pop, Billboard Chart Style, Atlanta Trap" onclick="toggleTag(this)">🇺🇸 美式排行</button>
-            <button class="btn-region" data-val="Reggaeton, Latin Pop, Spanish Lyrics" onclick="toggleTag(this)">🇧🇷 拉丁熱浪</button>
-            <button class="btn-region" data-val="Afrobeats, Log Drum, Amapiano" onclick="toggleTag(this)">🌍 非洲律動</button>
-            <button class="btn-region" data-val="C-Pop, Mandopop, Sentimental Ballad" onclick="toggleTag(this)">🇨🇳 華語流行</button>
-            <button class="btn-region" data-val="Bollywood, Punjabi, Indian Percussion" onclick="toggleTag(this)">🇮🇳 寶萊塢</button>
-            <button class="btn-region" data-val="Drift Phonk, Cowbell, Distorted Bass" onclick="toggleTag(this)">🌐 網路 Phonk</button>
-        </div>
-    </div>
-
-    <div class="layer-box layer-4" id="layer-mood">
-        <span class="title">❤️ Layer 5. 情感與心情</span>
-        <span class="subtitle">「情感調色盤 (Palette) — 為音樂染上情緒的溫度。」</span>
-        <div class="btn-group">
-            <button class="btn-emo" data-val="Dopamine Rush, Euphoric, Super Happy, Energetic, Uplifting" onclick="toggleTag(this)">☀️ Dopamine Rush (快樂)</button>
-            <button class="btn-emo" data-val="3AM Thoughts, Melancholic, Lonely, Sad, Heartbroken" onclick="toggleTag(this)">💧 3AM Thoughts (深夜emo)</button>
-            <button class="btn-emo" data-val="Main Character Energy, Epic, Triumphant, Powerful, Heroic" onclick="toggleTag(this)">⚔️ Main Character (熱血)</button>
-            <button class="btn-emo" data-val="Core Memory, Nostalgic, Warm, Bittersweet, Sentimental" onclick="toggleTag(this)">🍂 Core Memory (懷舊)</button>
-            <button class="btn-emo" data-val="Villain Arc, Dark Tension, Suspenseful, Dangerous, Menacing" onclick="toggleTag(this)">🔥 Villain Arc (暗黑)</button>
-            <button class="btn-emo" data-val="Dreamscape, Ethereal, Dreamy, Magical, Surreal" onclick="toggleTag(this)">✨ POV: Dreamscape (夢幻)</button>
-        </div>
-    </div>
-
-    <div class="layer-box layer-6" id="layer-vox">
-        <span class="title">🎤 Layer 6. 人聲與主角</span>
-        <span class="subtitle">「劇本的主角 (Protagonist) — 誰來演繹這段故事？」</span>
-        <div class="sub-label">🎹 流行與現代</div>
-        <div class="btn-group">
-            <button class="btn-vox" data-val="Female Whisper Pop, Breathy Vocals, Intimate, ASMR" onclick="toggleTag(this)">[女] 氣聲臥室</button>
-            <button class="btn-vox" data-val="Soft Male Vocals, Gentle, Boy Band Style, Emotional" onclick="toggleTag(this)">[男] 溫柔少年</button>
-            <button class="btn-vox" data-val="J-Pop Idol Vocals, High-pitched, Kawaii, Anime OP" onclick="toggleTag(this)">[女] 二次元/加速</button>
-            <button class="btn-vox" data-val="Male Vocals, Heavy Autotune, Robotic, Melodic Rap" onclick="toggleTag(this)">[男] 流行電音</button>
-        </div>
-        <div class="sub-label">🎸 搖滾與懷舊</div>
-        <div class="btn-group">
-            <button class="btn-vox" data-val="Powerhouse Female Vocals, Belting, High Notes, Passionate" onclick="toggleTag(this)">[女] 鐵肺高音</button>
-            <button class="btn-vox" data-val="Raspy Male Vocals, Gritty, Gravelly Voice, Rough" onclick="toggleTag(this)">[男] 粗獷煙嗓</button>
-            <button class="btn-vox" data-val="70s Soul Diva, Warmth, Vintage Microphone" onclick="toggleTag(this)">[女] 70s 靈魂</button>
-            <button class="btn-vox" data-val="70s Soft Rocker, Folk Rock Style" onclick="toggleTag(this)">[男] 70s 軟搖滾</button>
-        </div>
-        <div class="sub-label">🎤 節奏與嘻哈</div>
-        <div class="btn-group">
-            <button class="btn-vox" data-val="Female Soul Vocals, R&B Runs, Melismatic, Expressive" onclick="toggleTag(this)">[女] 靈魂轉音</button>
-            <button class="btn-vox" data-val="Smooth R&B Male Vocals, Falsetto, Sexy" onclick="toggleTag(this)">[男] 深情 R&B</button>
-            <button class="btn-vox" data-val="Female Rap, Sassy, Fast Flow, Confident" onclick="toggleTag(this)">[女] 個性饒舌</button>
-            <button class="btn-vox" data-val="Male Melodic Rap, Trap Flow, Mumble Rap" onclick="toggleTag(this)">[男] 旋律饒舌</button>
-        </div>
-        <div class="sub-label">🏛️ 古典與美聲</div>
-        <div class="btn-group">
-            <button class="btn-vox" data-val="Operatic Soprano, Classical Aria, Legato, Vibrato" onclick="toggleTag(this)">[女] 歌劇女高音</button>
-            <button class="btn-vox" data-val="Operatic Tenor, Powerful, Classical Style" onclick="toggleTag(this)">[男] 歌劇男高音</button>
-        </div>
-    </div>
-
-    <div class="layer-box layer-5" id="layer-bpm">
-        <span class="title">🏎️ Layer 7. 時間與速度</span>
-        <span class="subtitle">「心跳與脈搏 (The Pulse) — 掌控時間流動的快慢。」</span>
-        <div class="sub-label">⏱️ 長度 (單選)</div>
-        <div class="btn-group">
-            <button class="btn-length" data-val="[15 Seconds], [Quick Fade Out]" onclick="selectSingle(this, 'length')">15秒 (限動)</button>
-            <button class="btn-length" data-val="[30 Seconds], [Hard Stop]" onclick="selectSingle(this, 'length')">30秒 (廣告)</button>
-            <button class="btn-length" data-val="[3 Minutes], [Radio Edit]" onclick="selectSingle(this, 'length')">3分 (完整)</button>
-            <button class="btn-length" data-val="[Seamless Loop]" onclick="selectSingle(this, 'length')">無限循環 (Loop)</button>
-        </div>
-        <div class="sub-label">🏎️ 速度 (單選)</div>
-        <div class="btn-group">
-            <button class="btn-bpm" data-val="65 BPM, Largo, Slow Tempo" onclick="selectSingle(this, 'bpm')">65 (慢板)</button>
-            <button class="btn-bpm" data-val="90 BPM, Groove, Mid Tempo" onclick="selectSingle(this, 'bpm')">90 (嘻哈/Vlog)</button>
-            <button class="btn-bpm" data-val="120 BPM, Pop Tempo" onclick="selectSingle(this, 'bpm')">120 (流行)</button>
-            <button class="btn-bpm" data-val="140 BPM, High Energy, Fast Tempo" onclick="selectSingle(this, 'bpm')">140 (運動)</button>
-            <button class="btn-bpm" data-val="175 BPM, Very Fast, Drum and Bass Tempo" onclick="selectSingle(this, 'bpm')">175 (Phonk)</button>
-        </div>
-    </div>
-
-    <div class="layer-box layer-3" id="layer-inst">
-        <span class="title">🎻 Layer 8. 器樂細節 (V24 Calibration)</span>
-        <span class="subtitle">「關鍵催化劑 (The Catalyst) — 改變聽感的決定性變數。」</span>
-        
-        <div class="chemistry-lab">
-            <div class="lab-header">
-                <span class="lab-title">🧪 音樂化學反應室</span>
-                <div class="reaction-legend">
-                    <span class="legend-item classic">✅ 經典</span>
-                    <span class="legend-item fusion">🧪 融合</span>
-                    <span class="legend-item warn">⚠️ 衝突</span>
-                </div>
+        <div class="structure-grid" id="struct-container">
             </div>
-            <div id="chemistryContent" class="lab-content">
-                請先選擇 <b>Layer 3</b> 風格與 <b>Layer 5/8</b> 元素，系統將為您分析化學反應...
-            </div>
-        </div>
+    </div>
 
-        <div class="sub-label">🎷 管樂與銅管</div>
-        <div class="btn-group">
-            <button class="btn-inst" data-val="Saxophone Solo, Smoky Tone, Jazz Lead" onclick="toggleTag(this)">薩克斯風</button>
-            <button class="btn-inst" data-val="Brass Section, Punchy Horns, Trumpet & Trombone" onclick="toggleTag(this)">銅管樂團</button>
-            <button class="btn-inst" data-val="Muted Trumpet Solo, Noir Jazz, Miles Davis Style" onclick="toggleTag(this)">弱音小號</button>
-            <button class="btn-inst" data-val="Flute Solo, Ethereal, Folk Instrument" onclick="toggleTag(this)">長笛</button>
-            <button class="btn-inst" data-val="Harmonica Solo, Blues Harp, Folk Style" onclick="toggleTag(this)">口琴</button>
+    <div class="output-panel">
+        <div class="output-group">
+            <div class="output-label">Style (風格指令) <span id="logic-log"></span></div>
+            <textarea id="style-box" readonly placeholder="等待設定..."></textarea>
         </div>
-
-        <div class="sub-label">🎻 弦樂與吉他</div>
-        <div class="btn-group">
-            <button class="btn-inst" data-val="Solo Cello, Deep, Emotional String" onclick="toggleTag(this)">大提琴獨奏</button>
-            <button class="btn-inst" data-val="String Section, Orchestral Strings, Cinematic" onclick="toggleTag(this)">弦樂群</button>
-            <button class="btn-inst" data-val="Electric Guitar, Clean Tone, Chorus Effect" onclick="toggleTag(this)">電吉他</button>
-            <button class="btn-inst" data-val="Acoustic Guitar, Fingerpicking, Unplugged" onclick="toggleTag(this)">木吉他</button>
-            <button class="btn-inst" data-val="Slap Bass, Funk Groove, Thumping Bass" onclick="toggleTag(this)">擊勾貝斯</button>
+        <div class="output-group">
+            <div class="output-label" style="color: var(--param)">Suno Params (參數建議)</div>
+            <textarea id="params-box" readonly placeholder="等待設定..."></textarea>
         </div>
-
-        <div class="sub-label">🎹 鍵盤與合成器</div>
-        <div class="btn-group">
-            <button class="btn-inst" data-val="Grand Piano, Steinway, Classical Tone" onclick="toggleTag(this)">平台鋼琴</button>
-            <button class="btn-inst" data-val="Rhodes Electric Piano, Warm, Neo-Soul Keys" onclick="toggleTag(this)">Rhodes 電鋼琴</button>
-            <button class="btn-inst" data-val="Synthesizer Lead, Sawtooth Wave, Futurtistic" onclick="toggleTag(this)">合成器</button>
-            <button class="btn-inst" data-val="Pipe Organ, Church Organ, Gothic, Holy" onclick="toggleTag(this)">管風琴</button>
+        <div class="output-group">
+            <div class="output-label">Lyrics & Structure (結構)</div>
+            <textarea id="lyrics-box" readonly placeholder="[Intro]..."></textarea>
         </div>
-        
-        <div class="sub-label">🥁 節奏與特效</div>
-        <div class="btn-group">
-            <button class="btn-inst" data-val="Live Drum Kit, Acoustic Drums, Dynamic" onclick="toggleTag(this)">爵士鼓</button>
-            <button class="btn-inst" data-val="Distorted 808 Bass, Sub-bass, Earthshaking" onclick="toggleTag(this)">808重低音</button>
-            <button class="btn-inst" data-val="Trap Drum Machine, Hi-hat Rolls, 808s" onclick="toggleTag(this)">陷阱鼓機</button>
-            <button class="btn-inst" data-val="Orchestral Percussion, Timpani, War Drums" onclick="toggleTag(this)">史詩打擊樂</button>
-            <button class="btn-inst" data-val="World Percussion, Congas, Bongos, Tribal" onclick="toggleTag(this)">世界打擊樂</button>
-            <button class="btn-inst" data-val="Vinyl Crackle, Lo-fi Hiss, Background Noise" onclick="toggleTag(this)">黑膠底噪</button>
-            <button class="btn-inst" data-val="Phonk Cowbell, Drift Phonk Style" onclick="toggleTag(this)">Phonk牛鈴</button>
+        <div class="action-row">
+            <button class="action-btn btn-copy" onclick="copyAll()">📋 複製全部</button>
+            <button class="action-btn btn-reset" onclick="resetAll()">🔄 重置</button>
         </div>
     </div>
 
-    <div class="layer-box layer-8" id="layer-mix">
-        <span class="title">🎛️ Layer 9. 混音濾鏡與排除</span>
-        <span class="subtitle">「時空濾鏡 (The Lens) — 決定聲音的年代與顆粒感。」</span>
-        <div class="sub-label">🎛️ 風格濾鏡</div>
-        <div class="btn-group">
-            <button class="btn-mix" data-val="Vintage Recording, Vinyl Crackle, Hiss, Warm Analog" onclick="toggleTag(this)">📼 復古黑膠</button>
-            <button class="btn-mix" data-val="Muffled Sound, Low Fidelity, Underwater Effect" onclick="toggleTag(this)">📻 悶音/Lo-fi</button>
-            <button class="btn-mix" data-val="Bitcrushed, Industrial Distortion, Aggressive Mix" onclick="toggleTag(this)">⚡ 破音/失真</button>
-            <button class="btn-mix" data-val="High Fidelity, Clear Production, Studio Quality" onclick="toggleTag(this)">✨ 高清/現代</button>
-            <button class="btn-mix" data-val="Live Concert Recording, Crowd Noise, Stadium Reverb" onclick="toggleTag(this)">🎤 現場</button>
-            <button class="btn-mix" data-val="Dry Sound, Close-mic, No Reverb, Intimate Studio" onclick="toggleTag(this)">🎙️ 錄音室乾聲</button>
-        </div>
-        <div class="sub-label" style="color:#eb4d4b;">⛔ 強力排除</div>
-        <div class="btn-group">
-            <button class="btn-neg" data-val="[Instrumental], [No Vocals]" onclick="toggleTag(this)">🚫 純音樂</button>
-            <button class="btn-neg" data-val="[No Drums], [No Percussion]" onclick="toggleTag(this)">🚫 無節奏</button>
-            <button class="btn-neg" data-val="[Acoustic], [No Electronic]" onclick="toggleTag(this)">🚫 純原聲</button>
-            <button class="btn-neg" data-val="[No Rap]" onclick="toggleTag(this)">🚫 無饒舌</button>
-            <button class="btn-neg" data-val="[Clean], [No Noise]" onclick="toggleTag(this)">🚫 無雜訊</button>
-            <button class="btn-neg" data-val="[Simple], [Minimalist]" onclick="toggleTag(this)">🚫 極簡化</button>
-        </div>
-    </div>
-    
-    <div class="monitor-area" id="monitorArea">
-        <div class="monitor-header">
-            <span class="monitor-title">🎛️ superL 雙模態監控室</span>
-            <button class="monitor-toggle" onclick="toggleMonitorMode()">👁️ 切換視圖 (Mode)</button>
-        </div>
-        
-        <div id="focusMode">
-            <div class="focus-status">
-                <span id="focusLabel">🎲 AI 隨機生成</span>
-                <span id="focusPercent">15%</span>
-            </div>
-            <div class="focus-bar-container">
-                <div class="focus-bar-fill" id="focusBar"></div>
-            </div>
-            <div class="ghost-chips" id="ghostChips">
-                </div>
-        </div>
-
-        <div id="radarMode" class="radar-container">
-            <svg width="120" height="120" viewBox="0 0 100 100">
-                <polygon points="50,10 85,30 85,70 50,90 15,70 15,30" fill="none" stroke="#444" stroke-width="0.5"/>
-                <polygon points="50,30 67,40 67,60 50,70 33,60 33,40" fill="none" stroke="#444" stroke-width="0.5"/>
-                <line x1="50" y1="50" x2="50" y2="10" class="radar-axis"/>
-                <line x1="50" y1="50" x2="85" y2="30" class="radar-axis"/>
-                <line x1="50" y1="50" x2="85" y2="70" class="radar-axis"/>
-                <line x1="50" y1="50" x2="50" y2="90" class="radar-axis"/>
-                <line x1="50" y1="50" x2="15" y2="70" class="radar-axis"/>
-                <line x1="50" y1="50" x2="15" y2="30" class="radar-axis"/>
-                <polygon id="radarShape" points="50,50 50,50 50,50 50,50 50,50 50,50" class="radar-shape"/>
-            </svg>
-            <div style="margin-left:15px; font-size:10px; color:#b2bec3; display:flex; flex-direction:column; gap:2px;">
-                <div>⬆️ 風格 (Style)</div>
-                <div>↗️ 情感 (Mood)</div>
-                <div>↘️ 律動 (Rhythm)</div>
-                <div>⬇️ 混音 (Mix)</div>
-                <div>↙️ 人聲 (Vox)</div>
-                <div>↖️ 樂器 (Inst)</div>
-            </div>
-        </div>
-    </div>
-
-    <div class="tips-container" style="margin-bottom:180px;">
-        <details>
-            <summary style="color:#00b894; font-weight:bold;">🚀 點此查看：Suno V5 專業工作流 (superL 專用)</summary>
-            <div class="tips-content" style="background:#2d3436; color:#dfe6e9; border-left-color:#00b894;">
-                
-                <div style="font-size:12px; color:#ffeaa7; font-weight:bold; margin-bottom:5px; border-bottom:1px solid #555; padding-bottom:3px;">🎛️ Step 1. 創作設定 (Custom Mode)</div>
-                
-                <div class="tip-item" style="margin-bottom:5px;">
-                    <strong>1. 注入指令 (Style)</strong>
-                    <span class="tip-ex" style="color:#b2bec3;">將 superL 的「最終生成指令」貼入 <span style="color:#fff;">Style</span> 欄位。</span>
-                </div>
-                <div class="tip-item" style="margin-bottom:5px;">
-                    <strong>2. 排除雜訊 (Exclude)</strong>
-                    <span class="tip-ex" style="color:#b2bec3;">將指令中的 "No Drums" 等排除詞，剪下貼到 <span style="color:#fff;">Exclude styles</span>。</span>
-                </div>
-                <div class="tip-item" style="margin-bottom:10px;">
-                    <strong>3. 權重控制 (Influence)</strong>
-                    <span class="tip-ex" style="color:#b2bec3;">建議將 <span style="color:#fff;">Style Influence</span> 拉高至 <strong>60%</strong>，讓 AI 更聽話。</span>
-                </div>
-
-                <div style="font-size:12px; color:#74b9ff; font-weight:bold; margin-bottom:5px; border-bottom:1px solid #555; padding-bottom:3px;">🚀 Step 2. 後製優化 (Action Menu)</div>
-
-                <div class="tip-item" style="margin-bottom:5px;">
-                    <strong>1. 結構拼接 (Extend)</strong>
-                    <span class="tip-ex" style="color:#b2bec3;">先生成 Intro，滿意後按 <span style="color:#fdcb6e;">⏩Extend</span>，貼上 Verse 指令繼續接龍。</span>
-                </div>
-                <div class="tip-item" style="margin-bottom:5px;">
-                    <strong>2. 風格鎖定 (Reuse)</strong>
-                    <span class="tip-ex" style="color:#b2bec3;">喜歡這個歌手？按 <span style="color:#fdcb6e;">🔄Reuse Style</span> 鎖定基因，整張專輯不跑調。</span>
-                </div>
-                <div class="tip-item">
-                    <strong>3. 音質救星 (Remaster)</strong>
-                    <span class="tip-ex" style="color:#b2bec3;">最後按 <span style="color:#fdcb6e;">✨Remaster</span>，消除底噪，升級高清音質。</span>
-                </div>
-            </div>
-        </details>
-
-        <details style="margin-top:10px;">
-            <summary>✨ 點此查看：5 個讓 AI 更聽話的黃金法則 (通用)</summary>
-            <div class="tips-content">
-                <div class="tip-item"><strong>1. 給畫面</strong><span class="tip-ex">例: Rain sounds, Lonely street</span></div>
-                <div class="tip-item"><strong>2. 定主題</strong><span class="tip-ex">例: About a broken robot</span></div>
-                <div class="tip-item"><strong>3. 選主角</strong><span class="tip-ex">例: Saxophone Solo</span></div>
-                <div class="tip-item"><strong>4. 形容聲音</strong><span class="tip-ex">例: Raspy voice, Breathy</span></div>
-                <div class="tip-item"><strong>5. 特殊操作</strong><span class="tip-ex">例: [Silence], [Spoken Word]</span></div>
-            </div>
-        </details>
-    </div>
-
-    <div class="result-area">
-        <div style="margin-bottom:8px;">
-            <input type="text" id="customInput" class="custom-input" placeholder="✨ 補充指令... (點擊上方紫色選單查看技巧)" oninput="render()">
-        </div>
-        <div style="display:flex; justify-content:space-between; color:#f1c40f; font-weight:bold; margin-bottom:5px; font-size:14px;">
-            <span>📜 最終生成指令：</span>
-            <span style="cursor:pointer; text-decoration: underline;" onclick="resetAll()">[ 重置全部 ]</span>
-        </div>
-        <textarea id="output" placeholder="請點選上方按鈕..." readonly></textarea>
-        <div id="charCount" class="char-counter count-safe">0 / 500</div>
-        
-        <div class="email-section">
-            <button class="copy-btn" onclick="copyText()">📋 複製指令 (Copy)</button>
-            <input type="email" id="userEmail" class="email-input" placeholder="您的 Email (選填)">
-            <button class="send-btn" onclick="sendToDev()">📧 傳送給開發者</button>
-        </div>
-    </div>
-    
     <script>
-        // --- 全域變數 ---
-        let struct = "";
-        let lengthTag = ""; 
-        let bpmTag = "";    
-        let tags = [];      
-        let currentSubGenreCode = ""; 
-        let currentSubGenrePrompt = ""; 
-        let monitorMode = 'focus'; // 'focus' or 'radar'
-
-        // --- 核心資料庫 (Knowledge Base) ---
-        const genreData = {
-            "pop_electronic": {
-                name: "🎹 流行與電子",
-                subs: [
-                    { name: "City Pop", desc: "80s日本都會風", prompt: "City Pop, 80s Japanese Pop, Plastic Love Vibe, Neon City", code: "CityPop" },
-                    { name: "Synthwave", desc: "科幻賽博風", prompt: "Synthwave, Cyberpunk, Blade Runner Vibe, Futuristic, Retrowave", code: "Synthwave" },
-                    { name: "Deep House", desc: "時尚走秀", prompt: "Deep House, Minimal, Fashion Runway Vibe, Soulful Vocals", code: "DeepHouse" },
-                    { name: "Dream Pop", desc: "夢幻模糊", prompt: "Dream Pop, Shoegaze, Reverb-heavy Vocals, Fuzzy Guitar, Ethereal", code: "DreamPop" },
-                    { name: "Modern Pop", desc: "現代主流", prompt: "Contemporary Pop, Top 40, Catchy, Polished, High Production", code: "ModernPop" },
-                    { name: "Hyperpop", desc: "誇張失真", prompt: "Hyperpop, Glitch, Distorted Bass, High-pitched Vocals, Experimental", code: "Hyperpop" }
-                ]
-            },
-            "hiphop_rb": {
-                name: "🎤 嘻哈節奏",
-                subs: [
-                    { name: "Trap", desc: "重低音炸裂", prompt: "Trap Music, Heavy 808 Bass, Hi-hat rolls, Auto-tune, Club Banger", code: "Trap" },
-                    { name: "Lofi Hip Hop", desc: "讀書放鬆", prompt: "Lofi Hip Hop, Chillhop, Vinyl Crackle, Mellow Piano, Study Beats", code: "Lofi" },
-                    { name: "Neo-Soul", desc: "慵懶靈魂", prompt: "Neo-Soul, Groovy Bass, Electric Piano, Laid back, Jazzy Chords", code: "NeoSoul" },
-                    { name: "Old School", desc: "90年代經典", prompt: "90s Boom Bap, Golden Age Hip Hop, Sampled Drum Break, East Coast Vibe", code: "OldSchool" },
-                    { name: "Drill", desc: "黑暗暴力", prompt: "UK Drill, Sliding 808 Bass, Dark Melody, Aggressive, Dark Energy", code: "Drill" }
-                ]
-            },
-            "rock_alt": { name: "🎸 搖滾另類", subs: [ { name: "Pop Punk", desc: "校園青春", prompt: "Pop Punk, High Energy, Teenage Angst, Fast Tempo", code: "PopPunk" }, { name: "Indie Rock", desc: "文青獨立", prompt: "Indie Rock, Raw, Garage Band, Alternative", code: "IndieRock" }, { name: "Shoegaze", desc: "巨大音牆", prompt: "Shoegaze, Wall of Sound, Ethereal, Distorted, Dreamy", code: "Shoegaze" }, { name: "Post-Rock", desc: "情緒爆發", prompt: "Post-Rock, Cinematic Build Up, Emotional Crescendo, No Vocals", code: "PostRock" }, { name: "Math Rock", desc: "複雜點弦", prompt: "Math Rock, Complex Time Signatures, Tapping Guitar, Clean Tone", code: "MathRock" } ] },
-            "folk_acoustic": { name: "🌲 民謠鄉村", subs: [ { name: "Indie Folk", desc: "森林系", prompt: "Indie Folk, Bon Iver Style, Cabin Vibe, Acoustic Harmony", code: "IndieFolk" }, { name: "Cinematic Folk", desc: "史詩感", prompt: "Cinematic Folk, Epic, Wide Landscapes, Nordic Vibe", code: "CinematicFolk" }, { name: "Country Pop", desc: "美式鄉村", prompt: "Country Pop, Nashville Sound, Acoustic Guitar, Storytelling", code: "CountryPop" }, { name: "Flamenco", desc: "熱情西班牙", prompt: "Flamenco, Spanish Guitar, Passionate, Hand Claps", code: "Flamenco" } ] },
-            "jazz_blues": { name: "🎷 爵士藍調", subs: [ { name: "Bossa Nova", desc: "巴西慵懶", prompt: "Bossa Nova, Brazilian Jazz, Relaxing, Soft Guitar", code: "BossaNova" }, { name: "Swing Jazz", desc: "大亨小傳", prompt: "Big Band Swing, Gatsby Style, Brass Section, Energetic", code: "Swing" }, { name: "Cool Jazz", desc: "深夜酒吧", prompt: "Cool Jazz, Muted Trumpet, Noir Vibe, Late Night, Smoky", code: "CoolJazz" }, { name: "Chicago Blues", desc: "電吉他藍調", prompt: "Chicago Blues, Electric Guitar, Gritty, Emotional Solo", code: "Blues" } ] },
-            "classical_cinematic": { name: "🎻 古典史詩", subs: [ { name: "Epic Orchestral", desc: "漢斯季默風", prompt: "Epic Orchestral, Hans Zimmer Style, Cinematic, Film Score, Big Percussion", code: "Epic" }, { name: "Minimalism", desc: "極簡鋼琴", prompt: "Minimalism, Philip Glass Style, Repetitive Piano, Emotional", code: "Minimalism" }, { name: "Baroque", desc: "華麗巴洛克", prompt: "Baroque, Harpsichord, Vivaldi Style, Royal, Elegant", code: "Baroque" }, { name: "Fantasy", desc: "奇幻魔法", prompt: "Fantasy Score, Magical, Harry Potter Style, John Williams Style, Wondrous", code: "Fantasy" } ] },
-            "latin_world": { name: "🏝️ 拉丁世界", subs: [ { name: "Reggaeton", desc: "雷鬼動", prompt: "Reggaeton, Dembow Rhythm, Club Hit, Latin Urban", code: "Reggaeton" }, { name: "Salsa", desc: "古巴熱情", prompt: "Salsa, Cuban Piano, Brass Section, Danceable", code: "Salsa" }, { name: "Bollywood", desc: "寶萊塢", prompt: "Bollywood, Indian Percussion, Energetic, Sitar, Masala", code: "Bollywood" }, { name: "Celtic", desc: "愛爾蘭風", prompt: "Celtic, Irish Folk, Fiddle, Flute, Jig", code: "Celtic" } ] },
-            "ambient_lofi": { name: "☁️ 氛圍低傳真", subs: [ { name: "Healing", desc: "療癒SPA", prompt: "Healing Music, Meditation, Spa, Soft Pads, 432Hz", code: "Healing" }, { name: "Dark Ambient", desc: "恐怖懸疑", prompt: "Dark Ambient, Horror, Unsettling, Drone, Scary", code: "DarkAmbient" }, { name: "Space Ambient", desc: "太空漂浮", prompt: "Space Ambient, Sci-Fi, Floating, Zero Gravity, Interstellar", code: "SpaceAmbient" } ] }
-        };
-        
-        // --- 🧠 完整版神經網絡資料庫 ---
-        const decisionTree = {
-            id: 'root',
-            label: '開始：創作目的',
-            children: [
-                {
-                    id: 'video',
-                    icon: '🎬',
-                    label: '影片配樂',
-                    desc: '為影像作品注入靈魂',
-                    children: [
-                        {
-                            id: 'vlog',
-                            icon: '🤳',
-                            label: '生活 Vlog / 旅遊',
-                            desc: '日常記錄、輕快節奏',
-                            children: [
-                                { id: 'vlog_happy', icon: '😊', label: '輕鬆愉快', desc: '早晨、咖啡廳', auto: { genreKey: 'folk_acoustic', subIndex: 2, mood: 'Major Key, Uplifting', bpm: '120 BPM' } },
-                                { id: 'vlog_nostalgic', icon: '🌇', label: '懷舊感性', desc: '夕陽、回憶', auto: { genreKey: 'hiphop_rb', subIndex: 1, mood: 'Nostalgic, Warm', bpm: '90 BPM' } },
-                                { id: 'vlog_chic', icon: '🕶️', label: '時尚快節奏', desc: '穿搭、逛街', auto: { genreKey: 'pop_electronic', subIndex: 2, mood: 'Confident, Stylish', bpm: '124 BPM' } }
-                            ]
-                        },
-                        {
-                            id: 'film',
-                            icon: '🎥',
-                            label: '電影敘事 / 微電影',
-                            desc: '情緒鋪陳、起承轉合',
-                            children: [
-                                { id: 'film_epic', icon: '⚔️', label: '史詩壯闊', desc: '大場面、管弦樂', auto: { genreKey: 'classical_cinematic', subIndex: 0, mood: 'Epic, Heroic', bpm: '90 BPM' } },
-                                { id: 'film_tense', icon: '😰', label: '懸疑緊張', desc: '驚悚、偵探', auto: { genreKey: 'ambient_lofi', subIndex: 1, mood: 'Suspenseful, Dark', bpm: '70 BPM' } },
-                                { id: 'film_emo', icon: '😭', label: '感人催淚', desc: '劇情片、鋼琴', auto: { genreKey: 'classical_cinematic', subIndex: 1, mood: 'Emotional, Sad', bpm: '65 BPM' } }
-                            ]
-                        },
-                        {
-                            id: 'ad',
-                            icon: '💼',
-                            label: '商業廣告',
-                            desc: '正向、安全、不搶戲',
-                            children: [
-                                { id: 'ad_corp', icon: '🏢', label: '穩重專業', desc: '科技、企業形象', auto: { genreKey: 'ambient_lofi', subIndex: 2, mood: 'Corporate, Minimal', bpm: '110 BPM' } },
-                                { id: 'ad_upbeat', icon: '✨', label: '活潑正向', desc: '促銷、食品', auto: { genreKey: 'pop_electronic', subIndex: 4, mood: 'Upbeat, Happy', bpm: '120 BPM' } }
-                            ]
-                        },
-                        {
-                            id: 'extreme',
-                            icon: '🛹',
-                            label: '極限運動',
-                            desc: '節奏感、重擊',
-                            children: [
-                                { id: 'ex_aggro', icon: '🔥', label: '炸裂失真', desc: '賽車、格鬥', auto: { genreKey: 'rock_alt', subIndex: 0, mood: 'Aggressive, High Energy', bpm: '150 BPM' } },
-                                { id: 'ex_cyber', icon: '⚡️', label: '疾速未來', desc: '跑酷、無人機', auto: { genreKey: 'pop_electronic', subIndex: 5, mood: 'Adrenaline, Fast', bpm: '160 BPM' } }
-                            ]
-                        }
-                    ]
+        // --- 🪐 V27.0 核心資料矩陣 (The Time Machine Matrix) ---
+        const timeMachineData = {
+            "cn": {
+                "70s": {
+                    baseTags: "70s Mandopop, Vintage Recording, Analog Warmth, Mono, Low Fidelity, Tape Hiss, Slow Tempo, Minimalist",
+                    forbidden: "Digital, Crisp, Modern, Auto-tune, High Fidelity",
+                    params: "Exclude: Modern, Digital | Weirdness: 20% | Influence: 85%",
+                    structureDefaults: ["intro", "verse", "chorus", "outro"],
+                    blockContent: {
+                        intro: "[Intro: Melodic Flute Solo]",
+                        verse: "[Verse 1: Sweet Airy Vocals, Very Close Proximity]",
+                        chorus: "[Chorus: Gentle Harmony, Sentimental]",
+                        bridge: "[Bridge: Acoustic Guitar Solo]",
+                        outro: "[Outro: Fade out]"
+                    },
+                    vocals: {
+                        male: { tag: "Warm, Conversational, Folk Style, Witty, Non-operatic", desc: "許冠傑式 (鬼馬/溫暖)" },
+                        female: { tag: "Sweet, Airy, Whispery, Crystal Clear, Minimal Vibrato", desc: "鄧麗君式 (甜美/氣聲)" }
+                    }
                 },
-                {
-                    id: 'game', 
-                    icon: '🎮', 
-                    label: '遊戲/直播', 
-                    desc: '循環背景音',
-                    children: [
-                        { id: 'game_battle', icon: '🔥', label: '戰鬥場景', desc: '高張力循環', auto: { genreKey: 'rock_alt', subIndex: 4, mood: 'Action, Intense', bpm: '140 BPM' } },
-                        { id: 'game_chill', icon: '☁️', label: '農場/大廳', desc: '放鬆氛圍', auto: { genreKey: 'ambient_lofi', subIndex: 0, mood: 'Relaxing, Cute', bpm: '80 BPM' } }
-                    ]
+                "80s": {
+                    baseTags: "80s Cantopop, Synth-Pop, Gated Reverb Drums, Analog Synth, Dramatic, Stereo",
+                    forbidden: "Acoustic, Dry Mix, Low Fidelity",
+                    params: "Exclude: Acoustic, Folk | Weirdness: 30% | Influence: 70%",
+                    structureDefaults: ["intro", "verse", "chorus", "bridge", "outro"],
+                    blockContent: {
+                        intro: "[Intro: Synth Hook and Heavy Drums]",
+                        verse: "[Verse 1: Reverb Heavy Vocals]",
+                        chorus: "[Chorus: Catchy, Romantic]",
+                        bridge: "[Bridge: Electric Guitar Solo with Gated Reverb]",
+                        outro: "[Outro: Repeat and Fade]"
+                    },
+                    vocals: {
+                        male: { tag: "Romantic, Baritone, Dramatic, Heavy Reverb, Soft Rock", desc: "張國榮式 (深情/華麗)" },
+                        female: { tag: "Contralto, Soulful, Powerful, Melancholic, Stage Presence", desc: "梅艷芳式 (滄桑/大氣)" }
+                    }
                 },
-                {
-                    id: 'listening', 
-                    icon: '🎧', 
-                    label: '純聆聽/發行', 
-                    desc: '完整結構歌曲', 
-                    action: () => alert('💡 提示：請直接在下方手動選擇 Layer 2 (風格) 開始創作您的單曲！') 
+                "90s": {
+                    baseTags: "90s Mandopop, Power Ballad, Orchestral, Piano, Wide Stereo, Multi-layered, Studio Quality",
+                    forbidden: "Lo-fi, Mono, Minimalist",
+                    params: "Exclude: Rap, Cute, Lofi | Weirdness: 40% | Influence: 60%",
+                    structureDefaults: ["intro", "verse", "chorus", "bridge", "outro"],
+                    blockContent: {
+                        intro: "[Intro: Grand Piano and Strings]",
+                        verse: "[Verse 1: Deep Emotional Vocals]",
+                        chorus: "[Chorus: Powerful Belting, Full Orchestra]",
+                        bridge: "[Bridge: Decrescendo, Slowing Down]", // 煞車系統
+                        outro: "[Outro: Sudden Silence]"
+                    },
+                    vocals: {
+                        male: { tag: "Deep, Resonant, Heavy Vibrato, Belting, Emotional", desc: "張學友式 (顫音/大歌)" },
+                        female: { tag: "Ethereal, Falsetto, Dream Pop, Celtic influence, Hiccup singing", desc: "王菲式 (空靈/拖音)" }
+                    }
+                },
+                "00s": {
+                    baseTags: "00s Mandopop, R&B, Pentatonic Scale, Hip Hop Beat, Piano, Cello, Polished",
+                    forbidden: "Vintage, Hiss, Mono",
+                    params: "Exclude: EDM, Heavy Metal | Weirdness: 40% | Influence: 60%",
+                    structureDefaults: ["intro", "verse", "chorus", "bridge", "outro"],
+                    blockContent: {
+                        intro: "[Intro: Classical Piano Solo]",
+                        verse: "[Verse 1: Mumble Rap style, Laid back]",
+                        chorus: "[Chorus: R&B Melody with Chinese Instruments]",
+                        bridge: "[Bridge: Rap Flow]",
+                        outro: "[Outro: Soft Piano]"
+                    },
+                    vocals: {
+                        male: { tag: "Mumble, R&B Flow, Slurred Diction, Cool, Laid-back", desc: "周杰倫式 (含糊/R&B)" },
+                        female: { tag: "Youthful, Bright, Pop Sweetness, Straight Tone", desc: "梁靜茹式 (清亮/情歌)" }
+                    }
                 }
-            ]
-        };
-        
-        // --- 🧪 化學反應邏輯 (Smart Advisor V24.0) ---
-        const genreInteractions = {
-            "CityPop": { "Saxophone":{type:"classic",msg:"✅ 經典：City Pop 必備靈魂。"}, "Brass":{type:"classic",msg:"✅ 經典：增加 80 年代奢華感。"}, "Slap Bass":{type:"classic",msg:"✅ 經典：律動核心。"}, "Phonk":{type:"conflict",msg:"⚠️ 衝突：破壞優雅感。"} },
-            "Synthwave": { "Synthesizer":{type:"classic",msg:"✅ 經典：核心元素。"}, "Electric Guitar":{type:"classic",msg:"✅ 經典：Top Gun 熱血感。"}, "Acoustic":{type:"conflict",msg:"⚠️ 衝突：木吉他太違和。"} },
-            "Trap": { "Heavy 808":{type:"classic",msg:"✅ 經典：心臟。"}, "Brass":{type:"fusion",msg:"🧪 融合：Epic Trap。"}, "Flute":{type:"fusion",msg:"🧪 融合：Trap Flute。"}, "Acoustic":{type:"fusion",msg:"🧪 融合：Emo Rap。"} },
-            "Lofi": { "Electric Piano":{type:"classic",msg:"✅ 經典：Rhodes 溫暖感。"}, "Vinyl":{type:"classic",msg:"✅ 經典：必要底噪。"}, "Muted Trumpet":{type:"classic",msg:"✅ 經典：深夜孤獨感。"}, "Aggressive":{type:"conflict",msg:"⚠️ 衝突：破壞放鬆感。"} },
-            "Drill": { "Grand Piano":{type:"classic",msg:"✅ 經典：陰暗旋律。"}, "808":{type:"classic",msg:"✅ 經典：Sliding Bass。"}, "Happy":{type:"conflict",msg:"⚠️ 衝突：Drill 不適合快樂。"} },
-            "PopPunk": { "Electric Guitar":{type:"classic",msg:"✅ 經典：Power Chords。"}, "Live Drum":{type:"classic",msg:"✅ 經典。"}, "No Drums":{type:"conflict",msg:"⚠️ 衝突：失去動力。"} },
-            "IndieRock": { "Clean":{type:"classic",msg:"✅ 經典：清脆吉他。"}, "Synthesizer":{type:"fusion",msg:"🧪 融合：Indietronica。"} },
-            "IndieFolk": { "Acoustic Guitar":{type:"classic",msg:"✅ 經典。"}, "Flute":{type:"classic",msg:"✅ 經典：精靈感。"}, "Harmonica":{type:"classic",msg:"✅ 經典：公路感。"}, "Distortion":{type:"conflict",msg:"⚠️ 衝突：破壞音質。"} },
-            "CoolJazz": { "Muted Trumpet":{type:"classic",msg:"✅ 經典：Noir Vibe。"}, "Saxophone":{type:"classic",msg:"✅ 經典。"}, "Synthesizer":{type:"conflict",msg:"⚠️ 衝突：太電子。"}, "Autotune":{type:"conflict",msg:"⚠️ 風格劫持：Autotune 會將爵士強制轉為 Trap。建議改選 'Soft Male Vocals'。"} },
-            "Fusion": { "Electric Piano":{type:"classic",msg:"✅ 經典。"}, "Slap Bass":{type:"classic",msg:"✅ 經典：Funk Jazz。"} },
-            
-            // --- Epic Case Fix ---
-            "Epic": { 
-                "Brass":{type:"classic",msg:"✅ 經典：英雄感。"}, 
-                "Orchestral Perc":{type:"classic",msg:"✅ 經典：戰鼓。"}, 
-                "Trap":{type:"fusion",msg:"🧪 融合：Epic Hybrid。"},
-                "Raspy":{type:"conflict",msg:"⚠️ 風格劫持：'Raspy' 會將史詩配樂強制轉為搖滾樂。若想要沙啞感，建議改選 'Powerful'。"},
-                "Dry Sound":{type:"conflict",msg:"⚠️ 空間感警告：'Dry Sound' 會讓交響樂聽起來像小房間錄音。建議改選 'High Fidelity'。"}
             },
-            
-            "Salsa": { "Brass":{type:"classic",msg:"✅ 經典：銅管炸裂。"}, "World Perc":{type:"classic",msg:"✅ 經典：康加鼓。"}, "Straight Rock":{type:"conflict",msg:"⚠️ 衝突：節奏太直。"} },
-            "Reggaeton": { "Synthesizer":{type:"fusion",msg:"🧪 融合：Latin Pop。"}, "Distorted 808":{type:"classic",msg:"✅ 經典：Dembow。"} },
-            "Healing": { "Synthesizer":{type:"classic",msg:"✅ 經典：Pads。"}, "Flute":{type:"classic",msg:"✅ 經典：New Age。"}, "Drum Kit":{type:"conflict",msg:"⚠️ 衝突：太吵。"} }
+            "jp": {
+                "70s": {
+                    baseTags: "70s Enka, Kayokyoku, Showa Era, Orchestral, Melodramatic, Vintage Recording",
+                    forbidden: "Modern, J-Pop, Electronic",
+                    params: "Exclude: Happy, Fast | Weirdness: 30% | Influence: 80%",
+                    structureDefaults: ["intro", "verse", "chorus", "outro"],
+                    blockContent: {
+                        intro: "[Intro: Spoken Word (Deep Emotion)]",
+                        verse: "[Verse 1: Melancholic Vocals]",
+                        chorus: "[Chorus: Powerful, Dramatic]",
+                        bridge: "[Bridge: Saxophone Solo]",
+                        outro: "[Outro: Grand Finale]"
+                    },
+                    vocals: {
+                        male: { tag: "Deep Guttural, Kobushi, Melodramatic, Traditional", desc: "演歌男聲 (轉音/悲壯)" },
+                        female: { tag: "Low Register, Melancholic, Serious, Emotional", desc: "山口百惠式 (昭和憂愁)" }
+                    }
+                },
+                "80s": {
+                    baseTags: "City Pop, J-Fusion, Slap Bass, Funk, Neon, Urban, 80s J-Pop",
+                    forbidden: "Enka, Traditional, Acoustic",
+                    params: "Exclude: Sad, Slow | Weirdness: 60% | Influence: 70%",
+                    structureDefaults: ["intro", "verse", "chorus", "bridge", "outro"],
+                    blockContent: {
+                        intro: "[Intro: Funky Guitar and Slap Bass]",
+                        verse: "[Verse 1: Smooth Vocals]",
+                        chorus: "[Chorus: Catchy Melody, Upbeat]",
+                        bridge: "[Bridge: Synth Solo]",
+                        outro: "[Outro: Fade out]"
+                    },
+                    vocals: {
+                        male: { tag: "Funky, Smooth, English Pronunciation influence, Groovy", desc: "山下達郎式 (律動/洋派)" },
+                        female: { tag: "High Pitch, Bright, Kawaii, Cheerful, Idol Pop", desc: "松田聖子式 (偶像/甜美)" }
+                    }
+                },
+                "90s": {
+                    baseTags: "90s J-Rock, Visual Kei, Distortion, Double Bass Drum, Fast Tempo, High Energy",
+                    forbidden: "Jazz, Lo-fi, Acoustic",
+                    params: "Exclude: Pop, Soft | Weirdness: 50% | Influence: 60%",
+                    structureDefaults: ["intro", "verse", "chorus", "bridge", "outro"],
+                    blockContent: {
+                        intro: "[Intro: Fast Electric Guitar Riff]",
+                        verse: "[Verse 1: Low Voice building up]",
+                        chorus: "[Chorus: High Pitch Screaming, Melodic]",
+                        bridge: "[Bridge: Twin Guitar Solo]",
+                        outro: "[Outro: Feedback Noise]"
+                    },
+                    vocals: {
+                        male: { tag: "Nasal, Dramatic, High Pitch Screaming, Angsty", desc: "視覺系 (鼻音/高音)" },
+                        female: { tag: "Powerful, High Energy, Eurobeat Style, Straightforward", desc: "安室奈美惠式 (鐵肺)" }
+                    }
+                },
+                "00s": {
+                    baseTags: "00s J-Pop, R&B, Automatic, Groovy, Electronic influence, Polished",
+                    forbidden: "Enka, Rock, Traditional",
+                    params: "Exclude: Enka | Weirdness: 40% | Influence: 60%",
+                    structureDefaults: ["intro", "verse", "chorus", "bridge", "outro"],
+                    blockContent: {
+                        intro: "[Intro: Electronic Beat]",
+                        verse: "[Verse 1: R&B Flow]",
+                        chorus: "[Chorus: Emotional Melody]",
+                        bridge: "[Bridge: English Rap]",
+                        outro: "[Outro: Fade out]"
+                    },
+                    vocals: {
+                        male: { tag: "Smooth, R&B, Pop, Light", desc: "平井堅式 (美聲)" },
+                        female: { tag: "Husky, Soulful, R&B, Vibrato", desc: "宇多田光式 (R&B/轉音)" }
+                    }
+                }
+            },
+            "en": {
+                "70s": {
+                    baseTags: "70s Soft Rock, Folk, Acoustic Guitar, Warm, Analog, Vintage",
+                    forbidden: "Electronic, Synth, Heavy Metal",
+                    params: "Exclude: Digital | Weirdness: 20% | Influence: 80%",
+                    structureDefaults: ["intro", "verse", "chorus", "outro"],
+                    blockContent: {
+                        intro: "[Intro: Acoustic Guitar Fingerpicking]",
+                        verse: "[Verse 1: Storytelling Vocals]",
+                        chorus: "[Chorus: Warm Harmony]",
+                        bridge: "[Bridge: Piano Solo]",
+                        outro: "[Outro: Fade out]"
+                    },
+                    vocals: {
+                        male: { tag: "Soft, Gentle, Acoustic Vibe, Storytelling, Warm", desc: "Carpenters/Folk Style" },
+                        female: { tag: "Contralto, Warm, Intimate, Velvet Texture, Dry Mix", desc: "Karen Carpenter Style" }
+                    }
+                },
+                "80s": {
+                    baseTags: "80s Pop, Synthwave, Drum Machine, Analog Synth, Falsetto, Funky",
+                    forbidden: "Acoustic, Country",
+                    params: "Exclude: Acoustic | Weirdness: 40% | Influence: 70%",
+                    structureDefaults: ["intro", "verse", "chorus", "bridge", "outro"],
+                    blockContent: {
+                        intro: "[Intro: Iconic Synth Riff]",
+                        verse: "[Verse 1: Percussive Vocals]",
+                        chorus: "[Chorus: High Energy, Danceable]",
+                        bridge: "[Bridge: Key Change]",
+                        outro: "[Outro: Vocal Ad-libs]"
+                    },
+                    vocals: {
+                        male: { tag: "Falsetto, Hiccups, Percussive Vocals, Funky, High Tenor", desc: "MJ/Prince Style" },
+                        female: { tag: "Bright, Reverb Heavy, Pop Diva, Energetic", desc: "Madonna Style" }
+                    }
+                },
+                "90s": {
+                    baseTags: "90s Alt Rock, Britpop, Distortion, Jangle Pop, Angsty, Raw",
+                    forbidden: "Polished, Auto-tune, Pop",
+                    params: "Exclude: Happy, Dance | Weirdness: 60% | Influence: 60%",
+                    structureDefaults: ["intro", "verse", "chorus", "bridge", "outro"],
+                    blockContent: {
+                        intro: "[Intro: Distorted Guitar Riff]",
+                        verse: "[Verse 1: Mumbled/Low Vocals]",
+                        chorus: "[Chorus: Loud, Anthem-like, Distortion]",
+                        bridge: "[Bridge: Quiet Section then Explosion]",
+                        outro: "[Outro: Feedback and Noise]"
+                    },
+                    vocals: {
+                        male: { tag: "Raspy, Slurred, Angsty, Laid-back, Nasal", desc: "Oasis/Nirvana Style" },
+                        female: { tag: "Melismatic, Whistle Register, Powerhouse, Soulful", desc: "Mariah/Diva Style" }
+                    }
+                },
+                "00s": {
+                    baseTags: "00s Pop Punk, High Energy, Power Chords, Teenage Angst, Fast Tempo",
+                    forbidden: "Slow, Jazz, Acoustic",
+                    params: "Exclude: Slow, Sad | Weirdness: 50% | Influence: 70%",
+                    structureDefaults: ["intro", "verse", "chorus", "bridge", "outro"],
+                    blockContent: {
+                        intro: "[Intro: Fast Drum Fill and Guitar]",
+                        verse: "[Verse 1: Clean Guitar, Palm Mute]",
+                        chorus: "[Chorus: Catchy, High Energy]",
+                        bridge: "[Bridge: Half-time breakdown]",
+                        outro: "[Outro: Final Chord]"
+                    },
+                    vocals: {
+                        male: { tag: "Nasal, American Accent, Punk Style, High Energy", desc: "Pop Punk Style" },
+                        female: { tag: "Sassy, Pop Rock, Attitude, Strong", desc: "Avril Style" }
+                    }
+                }
+            }
         };
 
-        // --- 功能函式 ---
+        // --- 狀態管理 ---
+        let currentLang = null;
+        let currentEra = null;
+        let currentGender = null;
+        let currentBlockConfig = {}; // 儲存目前的積木內容
 
-        let navHistory = [];
-        function initNeuralNav() { renderNeuralNodes(decisionTree.children); }
+        // --- 1. 語言選擇 ---
+        function selectLang(lang, btn) {
+            currentLang = lang;
+            currentEra = null;
+            currentGender = null;
+            
+            // UI 更新
+            document.querySelectorAll('.btn-lang').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
 
-        function renderNeuralNodes(nodes) {
-            const container = document.getElementById('neuralNodes');
+            // 解鎖下一關
+            const eraSection = document.getElementById('section-era');
+            eraSection.classList.remove('disabled');
+            document.getElementById('label-era').innerText = "請選擇年代...";
+            
+            // 重置後續
+            document.querySelectorAll('#section-era .choice-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('section-vocal').classList.add('disabled');
+            document.getElementById('section-struct').classList.add('disabled');
+            resetOutput();
+        }
+
+        // --- 2. 年代選擇 (核心邏輯：載入預設值) ---
+        function selectEra(era, btn) {
+            currentEra = era;
+            currentGender = null;
+
+            // UI 更新
+            document.querySelectorAll('#section-era .choice-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('label-era').innerText = `${era} (${timeMachineData[currentLang][era].baseTags.split(',')[0]})`;
+
+            // 解鎖人聲
+            document.getElementById('section-vocal').classList.remove('disabled');
+            document.querySelectorAll('#section-vocal .choice-btn').forEach(b => b.classList.remove('active'));
+            
+            // 更新人聲描述文字
+            const vocalData = timeMachineData[currentLang][era].vocals;
+            document.getElementById('desc-male').innerText = vocalData.male.desc;
+            document.getElementById('desc-female').innerText = vocalData.female.desc;
+
+            // 🏗️ 建構結構積木 (Load Structure Blocks)
+            loadStructureBlocks(timeMachineData[currentLang][era]);
+            
+            // 更新參數與 Style (暫時只有基底)
+            renderOutput();
+        }
+
+        // --- 3. 人聲選擇 ---
+        function selectGender(gender, btn) {
+            currentGender = gender;
+            document.querySelectorAll('#section-vocal .choice-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderOutput();
+        }
+
+        // --- 🏗️ 結構積木系統 ---
+        function loadStructureBlocks(eraData) {
+            const container = document.getElementById('struct-container');
             container.innerHTML = '';
-            nodes.forEach(node => {
+            document.getElementById('section-struct').classList.remove('disabled');
+            
+            // 定義所有可能的積木
+            const allBlocks = ['intro', 'verse', 'chorus', 'bridge', 'outro'];
+            currentBlockConfig = eraData.blockContent; // 儲存當前內容供渲染用
+
+            allBlocks.forEach(blockKey => {
                 const div = document.createElement('div');
-                div.className = 'neural-node';
-                div.onclick = () => handleNodeClick(node);
-                div.innerHTML = `<div class="node-icon">${node.icon || '🔹'}</div><div class="node-label">${node.label}</div>`;
-                if(node.desc) div.innerHTML += `<div class="node-desc">${node.desc}</div>`; // Add desc back
+                div.className = 'struct-block';
+                
+                // 檢查是否為預設勾選
+                const isChecked = eraData.structureDefaults.includes(blockKey);
+                if(isChecked) div.classList.add('checked');
+
+                div.innerHTML = `
+                    <span class="checkbox-fake"></span>
+                    <span>${blockKey.charAt(0).toUpperCase() + blockKey.slice(1)}</span>
+                `;
+
+                // 點擊事件：切換勾選 -> 更新歌詞
+                div.onclick = () => {
+                    div.classList.toggle('checked');
+                    renderLyrics();
+                };
+
                 container.appendChild(div);
             });
-            updateBreadcrumbs();
+            renderLyrics(); // 初次渲染歌詞
         }
 
-        function handleNodeClick(node) {
-            if(node.action) { node.action(); return; } // Handle leaf actions
-            navHistory.push(node);
-            if (node.children) renderNeuralNodes(node.children);
-            else if (node.auto) { renderFinalStep(node); applyAutoSettings(node.auto); }
-        }
-
-        function renderFinalStep(node) {
-             const container = document.getElementById('neuralNodes');
-             container.innerHTML = `<div class="neural-node" style="border-color:#55efc4; width:100%;"><div class="node-icon">✅</div><div class="node-label">配置完成：${node.label}</div><button onclick="resetNeuralNav()" style="margin-top:5px;background:#636e72;color:white;border:none;">🔄 重新導航</button></div>`;
-             updateBreadcrumbs();
-             document.getElementById('neuralStatus').style.display = 'block';
-        }
-
-        function applyAutoSettings(auto) {
-            resetAll();
-            const genreBtn = document.querySelector(`.btn-main-genre[onclick*="${auto.genreKey}"]`);
-            if (genreBtn) {
-                renderSubGenres(auto.genreKey, genreBtn);
-                setTimeout(() => {
-                    const subData = genreData[auto.genreKey].subs[auto.subIndex];
-                    selectSubGenre(subData, document.querySelectorAll('.sub-btn')[auto.subIndex]);
-                }, 50);
-            }
-            tags.push(auto.mood);
-            bpmTag = auto.bpm;
-            render();
-        }
-
-        function updateBreadcrumbs() {
-            const bc = document.getElementById('neuralBreadcrumbs');
-            let html = `<span class="crumb" onclick="resetNeuralNav()">起點</span>`;
-            navHistory.forEach(n => html += ` > <span class="crumb">${n.label}</span>`);
-            bc.innerHTML = html;
-        }
-        function resetNeuralNav() { navHistory = []; renderNeuralNodes(decisionTree.children); document.getElementById('neuralStatus').style.display = 'none'; resetAll(); }
-        window.onload = initNeuralNav;
-
-        // --- Monitor System (V23) ---
-        function toggleMonitorMode() {
-            monitorMode = monitorMode === 'focus' ? 'radar' : 'focus';
-            document.getElementById('focusMode').style.display = monitorMode === 'focus' ? 'block' : 'none';
-            document.getElementById('radarMode').style.display = monitorMode === 'radar' ? 'flex' : 'none';
-        }
-
-        function updateMonitor() {
-            // 1. Calculate Precision Score
-            let score = 0;
-            if (currentSubGenreCode) score += 30; // 風格權重最大
-            if (tags.some(t => document.querySelector(`.btn-emo[data-val="${t}"]`))) score += 15; // 情感
-            if (bpmTag) score += 10;
-            if (lengthTag) score += 5;
-            if (tags.some(t => document.querySelector(`.btn-inst[data-val="${t}"]`))) score += 20; // 樂器
-            if (tags.some(t => document.querySelector(`.btn-vox[data-val="${t}"]`))) score += 10; // 人聲
-            if (tags.some(t => document.querySelector(`.btn-mix[data-val="${t}"]`))) score += 10; // 混音
-
-            score = Math.min(100, score);
+        // --- 渲染歌詞框 (根據積木狀態) ---
+        function renderLyrics() {
+            if (!currentEra) return;
             
-            // Update UI
-            document.getElementById('focusBar').style.width = score + '%';
-            document.getElementById('focusPercent').innerText = score + '%';
-            let label = "🎲 AI 隨機生成";
-            if(score > 30) label = "🎨 共同創作區";
-            if(score > 70) label = "🎯 精準控制區";
-            document.getElementById('focusLabel').innerText = label;
+            const blocks = document.querySelectorAll('.struct-block');
+            let lyricsText = "";
 
-            // Ghost Chips
-            const chips = [];
-            if(!currentSubGenreCode) chips.push({label:'❓風格', id:'layer-style'});
-            if(!tags.some(t => document.querySelector(`.btn-emo[data-val="${t}"]`))) chips.push({label:'❓情感', id:'layer-mood'});
-            if(!bpmTag) chips.push({label:'❓速度', id:'layer-bpm'});
-            if(!tags.some(t => document.querySelector(`.btn-vox[data-val="${t}"]`))) chips.push({label:'❓人聲', id:'layer-vox'});
-            
-            const chipsContainer = document.getElementById('ghostChips');
-            chipsContainer.innerHTML = '';
-            chips.forEach(c => {
-                const span = document.createElement('span');
-                span.className = 'ghost-chip';
-                span.innerText = c.label;
-                span.onclick = () => document.getElementById(c.id).scrollIntoView({behavior:'smooth'});
-                chipsContainer.appendChild(span);
-            });
-
-            // 2. Update Radar Chart
-            updateRadar(score);
-        }
-
-        function updateRadar(totalScore) {
-            // 簡化版：根據各個向度的完成狀況填滿
-            // 軸序：Style(Top), Mood, Rhythm, Mix, Vox, Inst
-            const cx = 50, cy = 50;
-            // 這裡簡單模擬每個軸的值 (0~1)
-            let vStyle = currentSubGenreCode ? 0.9 : 0.2;
-            let vMood = tags.some(t => document.querySelector(`.btn-emo[data-val="${t}"]`)) ? 0.8 : 0.2;
-            let vRhythm = bpmTag ? 0.8 : 0.2;
-            let vMix = tags.some(t => document.querySelector(`.btn-mix[data-val="${t}"]`)) ? 0.8 : 0.2;
-            let vVox = tags.some(t => document.querySelector(`.btn-vox[data-val="${t}"]`)) ? 0.8 : 0.2;
-            let vInst = tags.some(t => document.querySelector(`.btn-inst[data-val="${t}"]`)) ? 0.8 : 0.2;
-
-            // 計算坐標點 (半徑最大35)
-            const r = 35;
-            const p1 = [cx, cy - r * vStyle]; // Top
-            const p2 = [cx + r * 0.866 * vMood, cy - r * 0.5 * vMood];
-            const p3 = [cx + r * 0.866 * vRhythm, cy + r * 0.5 * vRhythm];
-            const p4 = [cx, cy + r * vMix]; // Bottom
-            const p5 = [cx - r * 0.866 * vVox, cy + r * 0.5 * vVox];
-            const p6 = [cx - r * 0.866 * vInst, cy - r * 0.5 * vInst];
-
-            const poly = document.getElementById('radarShape');
-            poly.setAttribute('points', `${p1.join(',')} ${p2.join(',')} ${p3.join(',')} ${p4.join(',')} ${p5.join(',')} ${p6.join(',')}`);
-        }
-
-        // --- 基礎邏輯 ---
-
-        function selectSingle(el, type) {
-            const val = el.getAttribute('data-val');
-            let groupClass = type === 'struct' ? '.btn-struct' : (type === 'length' ? '.btn-length' : '.btn-bpm');
-            document.querySelectorAll(groupClass).forEach(b => b.classList.remove('active'));
-            if(type === 'struct') { if(struct===val) struct=""; else {struct=val; el.classList.add('active');} }
-            if(type === 'length') { if(lengthTag===val) lengthTag=""; else {lengthTag=val; el.classList.add('active');} }
-            if(type === 'bpm') { if(bpmTag===val) bpmTag=""; else {bpmTag=val; el.classList.add('active');} }
-            updateChemistry(); render();
-        }
-
-        function toggleTag(el) {
-            const val = el.getAttribute('data-val');
-            if (tags.includes(val)) { tags = tags.filter(t => t !== val); el.classList.remove('active'); } 
-            else { tags.push(val); el.classList.add('active'); }
-            updateChemistry(); render();
-        }
-
-        function renderSubGenres(key, btnEl) {
-            document.querySelectorAll('.btn-main-genre').forEach(b => b.classList.remove('active'));
-            btnEl.classList.add('active');
-            const data = genreData[key];
-            const container = document.getElementById('subGenreDisplay');
-            container.style.display = 'grid'; container.innerHTML = '';
-            data.subs.forEach((sub, idx) => {
-                const btn = document.createElement('button');
-                btn.className = 'sub-btn';
-                btn.onclick = () => selectSubGenre(sub, btn);
-                btn.innerHTML = `<span class="sub-name">${sub.name}</span><span class="sub-desc">${sub.desc}</span>`;
-                container.appendChild(btn);
-            });
-        }
-
-        function selectSubGenre(sub, btnEl) {
-            if (currentSubGenrePrompt) tags = tags.filter(t => t !== currentSubGenrePrompt);
-            currentSubGenrePrompt = sub.prompt; currentSubGenreCode = sub.code; tags.push(sub.prompt);
-            document.querySelectorAll('.sub-btn').forEach(b => b.classList.remove('active'));
-            btnEl.classList.add('active');
-            updateChemistry(); render();
-        }
-
-        function updateChemistry() {
-            const lab = document.getElementById('chemistryContent');
-            const activeTags = [...tags]; if(lengthTag) activeTags.push(lengthTag); if(bpmTag) activeTags.push(bpmTag);
-            if (!currentSubGenreCode) { lab.innerHTML = "請先選擇 <b>Layer 3</b> 的一種子風格..."; return; }
-            const rules = genreInteractions[currentSubGenreCode];
-            let html = "";
-            activeTags.forEach(tag => {
-                if(rules) {
-                    for (const [key, val] of Object.entries(rules)) {
-                        if (tag.includes(key)) html += `<div class="reaction-item reaction-${val.type}">${val.msg}</div>`;
+            blocks.forEach(block => {
+                if (block.classList.contains('checked')) {
+                    const blockName = block.innerText.toLowerCase();
+                    // 從 currentBlockConfig 抓取對應年代的文字
+                    if (currentBlockConfig[blockName]) {
+                        lyricsText += currentBlockConfig[blockName] + "\n\n";
                     }
                 }
             });
-            lab.innerHTML = html || `目前選擇的元素與 <b>${currentSubGenreCode}</b> 暫無特殊反應。`;
-            updateMonitor(); // 連動更新 Monitor
+
+            document.getElementById('lyrics-box').value = lyricsText.trim();
+        }
+
+        // --- 渲染最終輸出 ---
+        function renderOutput() {
+            if (!currentLang || !currentEra) return;
+
+            const data = timeMachineData[currentLang][currentEra];
+            const styleBox = document.getElementById('style-box');
+            const paramsBox = document.getElementById('params-box');
+            const logSpan = document.getElementById('logic-log');
+
+            // 1. Params
+            paramsBox.value = data.params;
+
+            // 2. Style
+            let tags = [data.baseTags];
+            let logicMsg = "";
+
+            if (currentGender) {
+                tags.push(data.vocals[currentGender].tag);
+                if (currentGender === 'male') tags.push("Male Vocals");
+                else tags.push("Female Vocals");
+                logicMsg = `✨ 已注入靈魂：${data.vocals[currentGender].desc}`;
+            }
+
+            styleBox.value = tags.join(", ");
+            logSpan.innerText = logicMsg;
+        }
+
+        function copyAll() {
+            const style = document.getElementById('style-box').value;
+            const params = document.getElementById('params-box').value;
+            const lyrics = document.getElementById('lyrics-box').value;
+            
+            const textToCopy = `Style:\n${style}\n\nParams:\n${params}\n\nLyrics Structure:\n${lyrics}`;
+            
+            navigator.clipboard.writeText(textToCopy);
+            const btn = document.querySelector('.btn-copy');
+            btn.innerText = "✅ 複製成功";
+            setTimeout(() => btn.innerText = "📋 複製全部", 2000);
         }
 
         function resetAll() {
-            struct = ""; tags = []; lengthTag = ""; bpmTag = ""; currentSubGenreCode = ""; currentSubGenrePrompt = "";
-            document.getElementById('customInput').value = "";
-            document.getElementById('userEmail').value = ""; // Clear email
-            document.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-            document.getElementById('subGenreDisplay').style.display = 'none';
-            document.getElementById('chemistryContent').innerHTML = "請先選擇 <b>Layer 3</b> 風格...";
-            render();
-            updateMonitor();
-        }
-
-        function render() {
-            let res = "";
-            let customText = document.getElementById('customInput').value.trim();
-            if (struct) res += struct + "\n";
-            let allTags = [...tags]; if (lengthTag) allTags.push(lengthTag); if (bpmTag) allTags.push(bpmTag); if (customText) allTags.push(customText);
-            if (allTags.length > 0) res += allTags.join(", ");
-            document.getElementById('output').value = res;
-            document.getElementById('charCount').innerText = res.length + " / 500";
-            updateMonitor();
-        }
-
-        function copyText() {
-            let box = document.getElementById('output');
-            if(!box.value) return alert("請先選擇！");
-            box.select(); navigator.clipboard.writeText(box.value);
-            let btn = document.querySelector('.copy-btn'); let orig = btn.innerText; btn.innerText = "✅ 複製成功！";
-            setTimeout(() => btn.innerText = orig, 2000);
-        }
-        
-        function sendToDev() {
-            let prompt = document.getElementById('output').value;
-            if(!prompt) return alert("請先生成指令再傳送！");
-            
-            let userEmail = document.getElementById('userEmail').value || "Anonymous";
-            let subject = encodeURIComponent("🎻 superL AI 音樂指令回饋");
-            let body = encodeURIComponent(`Hi superL Team,\n\n這是我剛剛生成的指令，分享給您參考：\n\n【我的 Email】: ${userEmail}\n\n【生成指令】:\n${prompt}\n\n(此郵件由系統自動生成)`);
-            
-            window.location.href = `mailto:willis3201@gmail.com?subject=${subject}&body=${body}`;
-        }
-        
-        // --- 核心修復：Layer 0 真實邏輯 (V24.3 FIXED) ---
-        function applyPreset(name) {
-             resetAll();
-             const presets = {
-                 'intimate': { prompt: 'Acoustic Guitar, Soft Vocals, Emotional, Ballad, Intimate Atmosphere, Minimalist', desc: '情感獨奏' },
-                 'epic': { prompt: 'Epic Orchestral, Hans Zimmer Style, Brass Section, Heroic, Cinematic, Big Percussion', desc: '史詩動作' },
-                 'cyberpunk': { prompt: 'Synthwave, Cyberpunk, Neon City, Blade Runner Vibe, Analog Synths, Futuristic', desc: '賽博未來' },
-                 'ghibli': { prompt: 'Joe Hisaishi Style, Orchestral, Piano, Violin, Magical, Whimsical, Fantasy, Emotional', desc: '吉卜力風' },
-                 'phonk': { prompt: 'Drift Phonk, Cowbell, High Tempo, Distorted Bass, Aggressive, Memphis Rap', desc: '流量 Phonk' },
-                 'lofi': { prompt: 'Lofi Hip Hop, Chillhop, Vinyl Crackle, Mellow Piano, Study Beats, Relaxing', desc: '深夜 Lofi' },
-                 'kpop': { prompt: 'K-Pop, Catchy Hook, Upbeat, Idol Vocals, Dance Pop, High Production, Korean Style', desc: '韓流 K-Pop' },
-                 'latin': { prompt: 'Reggaeton, Latin Pop, Summer Vibe, Danceable, Spanish Guitar, Dembow Rhythm', desc: '熱情拉丁' }
-             };
-
-             if (presets[name]) {
-                 tags.push(presets[name].prompt);
-                 // 模擬「選中」效果 (Optional visual feedback)
-                 document.getElementById('customInput').placeholder = `✨ 已套用黃金配方：${presets[name].desc}`;
-             } else {
-                 tags.push('Pop'); // Fallback
-             }
-             render();
+            currentLang = null; currentEra = null; currentGender = null;
+            document.querySelectorAll('.active').forEach(b => b.classList.remove('active'));
+            document.getElementById('section-era').classList.add('disabled');
+            document.getElementById('section-vocal').classList.add('disabled');
+            document.getElementById('section-struct').classList.add('disabled');
+            document.getElementById('label-era').innerText = "";
+            document.getElementById('desc-male').innerText = "--";
+            document.getElementById('desc-female').innerText = "--";
+            document.getElementById('struct-container').innerHTML = "";
+            document.getElementById('logic-log').innerText = "";
+            document.getElementById('style-box').value = "";
+            document.getElementById('params-box').value = "";
+            document.getElementById('lyrics-box').value = "";
         }
     </script>
 </body>
