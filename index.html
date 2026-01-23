@@ -3,18 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI 時光機 V27.1 (Director's Intensity)</title>
+    <title>AI 時光機 V30.0 (Ultimate Edition)</title>
     <style>
         :root {
             --bg-color: #121212;
             --card-bg: #1e1e1e;
-            --highlight: #00cec9; /* 聽覺青 */
-            --visual: #e17055;    /* 視覺橘 */
-            --vocal: #fd79a8;     /* 人聲粉 */
-            --mandarin: #e84393;  /* 華語紅 */
-            --japan: #6c5ce7;     /* 日語紫 */
-            --english: #0984e3;   /* 英語藍 */
-            --param: #74b9ff;     /* 參數藍 */
+            --highlight: #00cec9; 
+            --visual: #e17055;    
+            --vocal: #fd79a8;     
+            --mandarin: #e84393;  
+            --japan: #6c5ce7;     
+            --english: #0984e3;   
+            --param: #74b9ff;     
+            --lyric: #fab1a0;     
             --text: #dfe6e9;
             --border: #333;
             --block-bg: #2d3436;
@@ -27,7 +28,7 @@
             padding: 20px; 
             max-width: 900px; 
             margin: 0 auto; 
-            padding-bottom: 400px; 
+            padding-bottom: 450px; 
         }
 
         h2 { 
@@ -51,207 +52,81 @@
             transition: all 0.3s;
         }
 
-        .section-box.disabled {
-            opacity: 0.3;
-            pointer-events: none;
-            filter: grayscale(0.8);
-        }
-        
-        .section-title {
-            font-size: 13px;
-            color: #888;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        .section-box.disabled { opacity: 0.3; pointer-events: none; filter: grayscale(0.8); }
+        .section-title { font-size: 13px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
 
-        /* 網格系統 */
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 10px;
-        }
+        .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
+        .grid-mini { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
 
-        .grid-mini {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-        }
-
-        /* 按鈕樣式 */
         .choice-btn {
-            background: #2d2d2d;
-            border: 1px solid var(--border);
-            color: var(--text);
-            padding: 10px 5px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 13px;
-            text-align: center;
-            transition: all 0.2s;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 50px;
+            background: #2d2d2d; border: 1px solid var(--border); color: var(--text); padding: 10px 5px; border-radius: 8px; cursor: pointer; font-size: 13px; text-align: center; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 50px;
         }
-
         .choice-btn:hover { background: #3d3d3d; }
-        
-        /* 語言顏色 */
+        .choice-btn.active { border-color: var(--highlight); background: rgba(0, 206, 201, 0.1); color: var(--highlight); font-weight: bold; }
+
         .btn-lang.active[data-lang="cn"] { background: rgba(232, 67, 147, 0.2); border-color: var(--mandarin); color: var(--mandarin); }
         .btn-lang.active[data-lang="jp"] { background: rgba(108, 92, 231, 0.2); border-color: var(--japan); color: var(--japan); }
         .btn-lang.active[data-lang="en"] { background: rgba(9, 132, 227, 0.2); border-color: var(--english); color: var(--english); }
-
-        .choice-btn.active { 
-            border-color: var(--highlight); 
-            background: rgba(0, 206, 201, 0.1); 
-            color: var(--highlight);
-            font-weight: bold;
-        }
-
         .btn-sub { font-size: 10px; opacity: 0.6; margin-top: 4px; font-weight: normal; }
 
-        /* 🧱 導演積木樣式 (升級版) */
-        .structure-rows {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
+        /* 結構與力度 (回歸 V27.1 下拉選單樣式) */
+        .structure-rows { display: flex; flex-direction: column; gap: 8px; }
+        .struct-row { display: flex; align-items: center; background: var(--block-bg); border: 1px solid var(--border); padding: 8px 12px; border-radius: 6px; gap: 10px; }
+        .struct-row.inactive { opacity: 0.5; background: transparent; border-style: dashed; }
+        .struct-check { display: flex; align-items: center; cursor: pointer; min-width: 80px; font-weight: bold; font-size: 12px; color: var(--highlight); }
+        .checkbox-fake { width: 14px; height: 14px; border: 1px solid #777; border-radius: 3px; margin-right: 8px; display: inline-block; position: relative; }
+        .struct-row.active .checkbox-fake { background: var(--highlight); border-color: var(--highlight); }
+        .struct-select { flex: 1; background: #111; color: #fff; border: 1px solid #444; border-radius: 4px; padding: 6px; font-size: 11px; outline: none; cursor: pointer; }
         
-        .struct-row {
-            display: flex;
-            align-items: center;
-            background: var(--block-bg);
-            border: 1px solid var(--border);
-            padding: 8px 12px;
-            border-radius: 6px;
-            gap: 10px;
-        }
+        .struct-row.inactive .struct-select { pointer-events: none; color: #555; border-color: #333; }
 
-        .struct-row.inactive {
-            opacity: 0.5;
-            background: transparent;
-            border-style: dashed;
-        }
+        .theme-input { width: 100%; background: #000; border: 1px solid var(--lyric); color: #fff; padding: 12px; border-radius: 6px; font-size: 14px; box-sizing: border-box; outline: none; }
 
-        .struct-check {
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-            min-width: 80px;
-            font-weight: bold;
-            font-size: 12px;
-            color: var(--highlight);
-        }
-
-        .checkbox-fake {
-            width: 14px; height: 14px;
-            border: 1px solid #777;
-            border-radius: 3px;
-            margin-right: 8px;
-            display: inline-block;
-            position: relative;
-        }
-
-        .struct-row.active .checkbox-fake {
-            background: var(--highlight);
-            border-color: var(--highlight);
-        }
-
-        /* 下拉選單樣式 */
-        .struct-select {
-            flex: 1;
-            background: #111;
-            color: #fff;
-            border: 1px solid #444;
-            border-radius: 4px;
-            padding: 6px;
-            font-size: 11px;
-            outline: none;
-            cursor: pointer;
-        }
-        
-        .struct-row.inactive .struct-select {
-            pointer-events: none;
-            color: #555;
-            border-color: #333;
-        }
-
-        /* 輸出區 */
+        /* 輸出面板 (V29 獨立複製版) */
         .output-panel {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: #111;
-            border-top: 3px solid var(--highlight);
-            padding: 15px;
-            box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
-            z-index: 100;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
+            position: fixed; bottom: 0; left: 0; width: 100%; background: #111; border-top: 3px solid var(--highlight); padding: 15px; box-shadow: 0 -10px 40px rgba(0,0,0,0.9); z-index: 100; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px;
         }
 
         .output-group { flex: 1; display: flex; flex-direction: column; }
-        .output-label { font-size: 11px; color: #777; margin-bottom: 4px; font-weight: bold; text-transform: uppercase; display: flex; justify-content: space-between; }
-
+        .output-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .output-label { font-size: 11px; color: #777; font-weight: bold; text-transform: uppercase; }
+        
+        .btn-mini-copy {
+            background: #333; border: 1px solid #555; color: #fff; border-radius: 4px; padding: 3px 10px; font-size: 10px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 4px;
+        }
+        .btn-mini-copy:hover { background: #555; }
+        
         textarea {
-            width: 100%;
-            background: #000;
-            border: 1px solid #333;
-            color: #fff;
-            padding: 8px;
-            border-radius: 6px;
-            font-family: monospace;
-            resize: none;
-            box-sizing: border-box; 
-            font-size: 11px;
+            width: 100%; background: #000; border: 1px solid #333; color: #fff; padding: 8px; border-radius: 6px; font-family: monospace; resize: none; box-sizing: border-box; font-size: 11px;
         }
         
         #style-box { height: 45px; color: var(--highlight); }
-        #lyrics-box { height: 80px; color: #a29bfe; border-color: #a29bfe; }
+        #lyrics-box { height: 70px; color: #a29bfe; border-color: #a29bfe; }
         #params-box { height: 35px; color: var(--param); border-color: var(--param); }
 
-        .action-row { display: flex; gap: 10px; margin-top: 5px; }
-        .action-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
-        .btn-copy { background: var(--highlight); color: #000; }
-        .btn-reset { background: #333; color: #fff; flex: 0.3; }
+        .action-row { display: flex; gap: 10px; margin-top: 5px; border-top: 1px solid #333; padding-top: 10px; }
+        .action-btn { flex: 1; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .btn-prompt { background: var(--lyric); color: #000; flex: 2; }
+        .btn-reset { background: #222; color: #777; flex: 0.5; border: 1px solid #444; }
+        .btn-reset:hover { background: #333; color: #fff; }
 
     </style>
 </head>
 <body>
 
-    <h2>時光機 <span style="font-size:0.5em; opacity:0.5;">V27.1 (Director's Cut)</span></h2>
+    <h2>時光機 <span style="font-size:0.5em; opacity:0.5;">V30.0</span></h2>
 
     <div class="section-box">
-        <div class="section-title"><span>1. 選擇語言 (Language)</span></div>
+        <div class="section-title"><span>1. 語言 (Language)</span></div>
         <div class="grid-container" style="grid-template-columns: repeat(3, 1fr);">
-            <button class="choice-btn btn-lang" data-lang="cn" onclick="selectLang('cn', this)">
-                <span>🇨🇳 華語/粵語</span>
-                <span class="btn-sub">情感與回憶</span>
-            </button>
-            <button class="choice-btn btn-lang" data-lang="jp" onclick="selectLang('jp', this)">
-                <span>🇯🇵 日本語</span>
-                <span class="btn-sub">昭和至平成</span>
-            </button>
-            <button class="choice-btn btn-lang" data-lang="en" onclick="selectLang('en', this)">
-                <span>🇺🇸 English</span>
-                <span class="btn-sub">經典與搖滾</span>
-            </button>
+            <button class="choice-btn btn-lang" data-lang="cn" onclick="selectLang('cn', this)"><span>🇨🇳 華語/粵語</span></button>
+            <button class="choice-btn btn-lang" data-lang="jp" onclick="selectLang('jp', this)"><span>🇯🇵 日本語</span></button>
+            <button class="choice-btn btn-lang" data-lang="en" onclick="selectLang('en', this)"><span>🇺🇸 English</span></button>
         </div>
     </div>
 
     <div class="section-box disabled" id="section-era">
-        <div class="section-title">
-            <span>2. 進入年代 (Time Travel)</span>
-            <span id="label-era" style="color:var(--highlight)"></span>
-        </div>
+        <div class="section-title"><span>2. 年代 (Time Travel)</span> <span id="label-era" style="color:var(--highlight)"></span></div>
         <div class="grid-container" style="grid-template-columns: repeat(4, 1fr);">
             <button class="choice-btn" onclick="selectEra('70s', this)"><span>70s</span><span class="btn-sub">Vintage</span></button>
             <button class="choice-btn" onclick="selectEra('80s', this)"><span>80s</span><span class="btn-sub">Retro</span></button>
@@ -261,58 +136,63 @@
     </div>
 
     <div class="section-box disabled" id="section-vocal" style="border-left: 3px solid var(--vocal);">
-        <div class="section-title"><span>3. 靈魂選角 (Vocal Soul)</span></div>
+        <div class="section-title"><span>3. 靈魂選角 (Vocal)</span></div>
         <div class="grid-mini">
-            <button class="choice-btn" onclick="selectGender('male', this)">
-                <span>🙋🏻‍♂️ 男聲 (Male)</span>
-                <span class="btn-sub" id="desc-male">--</span>
-            </button>
-            <button class="choice-btn" onclick="selectGender('female', this)">
-                <span>🙋🏻‍♀️ 女聲 (Female)</span>
-                <span class="btn-sub" id="desc-female">--</span>
-            </button>
+            <button class="choice-btn" onclick="selectGender('male', this)"><span>🙋🏻‍♂️ 男聲 (Male)</span><span class="btn-sub" id="desc-male">--</span></button>
+            <button class="choice-btn" onclick="selectGender('female', this)"><span>🙋🏻‍♀️ 女聲 (Female)</span><span class="btn-sub" id="desc-female">--</span></button>
         </div>
     </div>
 
     <div class="section-box disabled" id="section-struct">
-        <div class="section-title">
-            <span>4. 導演結構 (Structure & Intensity)</span>
-            <span style="font-size:10px; color:#666;">勾選並選擇力度</span>
-        </div>
-        <div class="structure-rows" id="struct-container">
-            </div>
+        <div class="section-title"><span>4. 導演結構 (Intensity Control)</span> <span style="font-size:10px; color:#777">勾選啟用 • 下拉選擇力度</span></div>
+        <div class="structure-rows" id="struct-container"></div>
+    </div>
+
+    <div class="section-box disabled" id="section-theme" style="border-left: 3px solid var(--lyric);">
+        <div class="section-title"><span style="color:var(--lyric)">5. 歌詞主題 (給 AI 填詞用)</span></div>
+        <input type="text" id="theme-input" class="theme-input" placeholder="例如：東京下雨的夜晚，思念前任...">
     </div>
 
     <div class="output-panel">
+        
         <div class="output-group">
-            <div class="output-label">Style (風格指令) <span id="logic-log"></span></div>
-            <textarea id="style-box" readonly placeholder="等待設定..."></textarea>
+            <div class="output-header">
+                <span class="output-label">Style (風格) <span id="logic-log" style="font-weight:normal; text-transform:none; margin-left:5px; color:#555;"></span></span>
+                <button class="btn-mini-copy" onclick="copySingle('style-box', this)">📋 複製 Style</button>
+            </div>
+            <textarea id="style-box" readonly placeholder="Style Tags..."></textarea>
         </div>
+
         <div class="output-group">
-            <div class="output-label" style="color: var(--param)">Suno Params (參數建議)</div>
-            <textarea id="params-box" readonly placeholder="等待設定..."></textarea>
+            <div class="output-header">
+                <span class="output-label" style="color: var(--param)">Params (參數)</span>
+                <button class="btn-mini-copy" onclick="copySingle('params-box', this)">📋 複製 Params</button>
+            </div>
+            <textarea id="params-box" readonly placeholder="Weirdness / Exclude..."></textarea>
         </div>
+
         <div class="output-group">
-            <div class="output-label">Structure Script (結構劇本)</div>
-            <textarea id="lyrics-box" readonly placeholder="[Intro]..."></textarea>
+            <div class="output-header">
+                <span class="output-label">Lyrics (結構/歌詞)</span>
+                <button class="btn-mini-copy" onclick="copySingle('lyrics-box', this)">📋 複製 Lyrics</button>
+            </div>
+            <textarea id="lyrics-box" readonly placeholder="Structure..."></textarea>
         </div>
+
         <div class="action-row">
-            <button class="action-btn btn-copy" onclick="copyAll()">📋 複製全部</button>
+            <button class="action-btn btn-prompt" onclick="copyLyricsPrompt()">🤖 複製填詞 Prompt (給 ChatGPT)</button>
             <button class="action-btn btn-reset" onclick="resetAll()">🔄 重置</button>
         </div>
     </div>
 
     <script>
-        // --- 🪐 V27.1 時光機資料庫 (含力度選單) ---
+        // --- V27.1 的詳細資料庫 (含力度下拉選單) ---
         const timeMachineData = {
             "cn": {
                 "70s": {
-                    baseTags: "70s Mandopop, Vintage Recording, Analog Warmth, Mono, Low Fidelity, Tape Hiss, Slow Tempo, Minimalist",
+                    baseTags: "70s Mandopop, Vintage Recording, Analog Warmth, Mono, Low Fidelity, Tape Hiss, Slow Tempo",
                     params: "Exclude: Modern, Digital | Weirdness: 20% | Influence: 85%",
-                    vocals: {
-                        male: { tag: "Warm, Conversational, Folk Style, Witty, Non-operatic", desc: "許冠傑式 (鬼馬/溫暖)" },
-                        female: { tag: "Sweet, Airy, Whispery, Crystal Clear, Minimal Vibrato", desc: "鄧麗君式 (甜美/氣聲)" }
-                    },
+                    vocals: { male: { tag: "Warm, Conversational, Folk Style", desc: "許冠傑式" }, female: { tag: "Sweet, Airy, Whispery, Crystal Clear", desc: "鄧麗君式" } },
                     structureOptions: {
                         intro: [
                             { label: "極簡獨奏 (長笛/吉他)", val: "[Intro: Melodic Flute Solo, Minimalist]" },
@@ -331,15 +211,12 @@
                     }
                 },
                 "80s": {
-                    baseTags: "80s Cantopop, Synth-Pop, Gated Reverb Drums, Analog Synth, Dramatic, Stereo",
-                    params: "Exclude: Acoustic, Folk | Weirdness: 30% | Influence: 70%",
-                    vocals: {
-                        male: { tag: "Romantic, Baritone, Dramatic, Heavy Reverb, Soft Rock", desc: "張國榮式 (深情/華麗)" },
-                        female: { tag: "Contralto, Soulful, Powerful, Melancholic, Stage Presence", desc: "梅艷芳式 (滄桑/大氣)" }
-                    },
+                    baseTags: "80s Cantopop, Synth-Pop, Gated Reverb, Analog Synth, Dramatic",
+                    params: "Exclude: Acoustic | Weirdness: 30% | Influence: 70%",
+                    vocals: { male: { tag: "Romantic, Baritone, Heavy Reverb", desc: "張國榮式" }, female: { tag: "Contralto, Soulful, Powerful", desc: "梅艷芳式" } },
                     structureOptions: {
                         intro: [
-                            { label: "合成器+重鼓 (動感)", val: "[Intro: Synth Hook and Heavy Gated Reverb Drums]" },
+                            { label: "Synth+重鼓 (動感)", val: "[Intro: Synth Hook and Heavy Gated Reverb Drums]" },
                             { label: "薩克斯風 (浪漫)", val: "[Intro: Saxophone Solo, City Night Vibe]" }
                         ],
                         verse: [ { label: "深情 (Reverb)", val: "[Verse 1: Reverb Heavy Vocals]" } ],
@@ -352,12 +229,9 @@
                     }
                 },
                 "90s": {
-                    baseTags: "90s Mandopop, Power Ballad, Orchestral, Piano, Wide Stereo, Multi-layered, Studio Quality",
-                    params: "Exclude: Rap, Cute, Lofi | Weirdness: 40% | Influence: 60%",
-                    vocals: {
-                        male: { tag: "Deep, Resonant, Heavy Vibrato, Belting, Emotional", desc: "張學友式 (顫音/大歌)" },
-                        female: { tag: "Ethereal, Falsetto, Dream Pop, Celtic influence, Hiccup singing", desc: "王菲式 (空靈/拖音)" }
-                    },
+                    baseTags: "90s Mandopop, Power Ballad, Orchestral, Piano, Wide Stereo",
+                    params: "Exclude: Lofi | Weirdness: 40%",
+                    vocals: { male: { tag: "Deep, Heavy Vibrato, Belting", desc: "張學友式" }, female: { tag: "Ethereal, Falsetto, Dream Pop", desc: "王菲式" } },
                     structureOptions: {
                         intro: [
                             { label: "鋼琴獨奏 (經典)", val: "[Intro: Grand Piano Solo]" },
@@ -379,16 +253,13 @@
                     }
                 },
                 "00s": {
-                    baseTags: "00s Mandopop, R&B, Pentatonic Scale, Hip Hop Beat, Piano, Cello, Polished",
-                    params: "Exclude: EDM, Heavy Metal | Weirdness: 40% | Influence: 60%",
-                    vocals: {
-                        male: { tag: "Mumble, R&B Flow, Slurred Diction, Cool, Laid-back", desc: "周杰倫式 (含糊/R&B)" },
-                        female: { tag: "Youthful, Bright, Pop Sweetness, Straight Tone", desc: "梁靜茹式 (清亮/情歌)" }
-                    },
+                    baseTags: "00s Mandopop, R&B, Pentatonic, Hip Hop Beat",
+                    params: "Exclude: EDM | Weirdness: 40%",
+                    vocals: { male: { tag: "Mumble, R&B Flow, Slurred", desc: "周杰倫式" }, female: { tag: "Youthful, Bright, Pop", desc: "梁靜茹式" } },
                     structureOptions: {
                         intro: [
                             { label: "古典鋼琴", val: "[Intro: Classical Piano Solo]" },
-                            { label: "手機鈴聲/特效", val: "[Intro: Sound FX, Vinyl scratch]" }
+                            { label: "特效/鈴聲", val: "[Intro: Sound FX, Vinyl scratch]" }
                         ],
                         verse: [ { label: "饒舌唸白 (Rap)", val: "[Verse 1: Mumble Rap style, Laid back]" } ],
                         chorus: [ { label: "中國風 R&B", val: "[Chorus: R&B Melody with Chinese Instruments]" } ],
@@ -400,11 +271,10 @@
                     }
                 }
             },
-            // 日語與英語的資料結構同上，此處為簡化範例，程式碼運作時可擴充
             "jp": {
                 "70s": {
-                    baseTags: "70s Enka, Kayokyoku, Showa Era, Orchestral, Melodramatic, Vintage",
-                    params: "Exclude: Modern | Weirdness: 30% | Influence: 80%",
+                    baseTags: "70s Enka, Kayokyoku, Showa Era, Orchestral, Melodramatic",
+                    params: "Exclude: Modern | Weirdness: 30%",
                     vocals: { male: {tag: "Deep, Kobushi", desc: "演歌"}, female: {tag: "Melancholic", desc: "昭和"} },
                     structureOptions: {
                         intro: [{label:"口白 (Spoken)", val:"[Intro: Spoken Word with Emotion]"}, {label:"演歌前奏", val:"[Intro: Traditional Enka Intro]"}],
@@ -426,14 +296,36 @@
                         outro: [{label:"Fade Out", val:"[Outro: Fade out]"}]
                     }
                 },
-                "90s": { /* J-Rock 省略，邏輯同上 */ baseTags: "J-Rock", vocals: {}, structureOptions: { intro: [{label:"Guitar Riff", val:"[Intro: Fast Guitar]"}] } },
-                "00s": { /* J-Pop 省略 */ baseTags: "J-Pop", vocals: {}, structureOptions: { intro: [{label:"Beat", val:"[Intro: Beat]"}] } }
+                "90s": {
+                    baseTags: "J-Rock, Visual Kei, Distortion, Fast Tempo",
+                    params: "Exclude: Pop | Weirdness: 50%",
+                    vocals: { male: {tag: "Nasal, High Pitch", desc: "視覺系"}, female: {tag: "Power, Eurobeat", desc: "安室式"} },
+                    structureOptions: {
+                        intro: [{label:"Guitar Riff", val:"[Intro: Fast Guitar Riff]"}],
+                        verse: [{label:"Build up", val:"[Verse 1: Low Voice building up]"}],
+                        chorus: [{label:"Screaming", val:"[Chorus: High Pitch Screaming]"}],
+                        bridge: [{label:"Twin Guitar", val:"[Bridge: Twin Guitar Solo]"}],
+                        outro: [{label:"Feedback", val:"[Outro: Feedback Noise]"}]
+                    }
+                },
+                "00s": {
+                    baseTags: "00s J-Pop, R&B, Automatic, Polished",
+                    params: "Exclude: Enka | Weirdness: 40%",
+                    vocals: { male: {tag: "Smooth, R&B", desc: "平井堅式"}, female: {tag: "Husky, Vibrato", desc: "宇多田式"} },
+                    structureOptions: {
+                        intro: [{label:"Electronic", val:"[Intro: Electronic Beat]"}],
+                        verse: [{label:"R&B Flow", val:"[Verse 1: R&B Flow]"}],
+                        chorus: [{label:"Emotional", val:"[Chorus: Emotional Melody]"}],
+                        bridge: [{label:"English Rap", val:"[Bridge: English Rap]"}],
+                        outro: [{label:"Fade out", val:"[Outro: Fade out]"}]
+                    }
+                }
             },
             "en": {
                 "70s": {
                     baseTags: "70s Soft Rock, Folk, Acoustic, Warm",
-                    params: "Exclude: Digital | Weirdness: 20%",
-                    vocals: { male: {tag: "Soft", desc: "Folk"}, female: {tag: "Warm", desc: "Karen"} },
+                    params: "Exclude: Digital",
+                    vocals: { male: {tag: "Soft, Folk", desc: "Folk"}, female: {tag: "Warm, Velvet", desc: "Karen"} },
                     structureOptions: {
                         intro: [{label:"吉他指彈", val:"[Intro: Acoustic Guitar Fingerpicking]"}],
                         verse: [{label:"說故事", val:"[Verse 1: Storytelling Vocals]"}],
@@ -442,10 +334,22 @@
                         outro: [{label:"Fade Out", val:"[Outro: Fade out]"}]
                     }
                 },
+                "80s": {
+                    baseTags: "80s Pop, Synthwave, Analog Synth",
+                    params: "Exclude: Acoustic",
+                    vocals: { male: {tag: "Falsetto", desc: "MJ Style"}, female: {tag: "Power Diva", desc: "Madonna"} },
+                    structureOptions: {
+                        intro: [{label:"Synth Riff", val:"[Intro: Iconic Synth Riff]"}],
+                        verse: [{label:"Percussive", val:"[Verse 1: Percussive Vocals]"}],
+                        chorus: [{label:"High Energy", val:"[Chorus: High Energy]"}],
+                        bridge: [{label:"Key Change", val:"[Bridge: Key Change]"}],
+                        outro: [{label:"Ad-libs", val:"[Outro: Vocal Ad-libs]"}]
+                    }
+                },
                 "90s": {
                     baseTags: "Britpop, Grunge, Distortion",
-                    params: "Exclude: Pop | Weirdness: 60%",
-                    vocals: { male: {tag: "Nasal", desc: "Oasis"}, female: {tag: "Power", desc: "Diva"} },
+                    params: "Exclude: Pop",
+                    vocals: { male: {tag: "Raspy, Nasal", desc: "Oasis"}, female: {tag: "Powerhouse", desc: "Mariah"} },
                     structureOptions: {
                         intro: [{label:"破音吉他", val:"[Intro: Distorted Guitar Riff]"}],
                         verse: [{label:"慵懶 (Lazy)", val:"[Verse 1: Mumbled/Low Vocals]"}],
@@ -454,57 +358,48 @@
                         outro: [{label:"Feedback Noise", val:"[Outro: Feedback and Noise]"}]
                     }
                 },
-                "80s": { baseTags: "80s Pop", vocals: {}, structureOptions: { intro: [{label:"Synth", val:"[Intro: Synth]"}] } },
-                "00s": { baseTags: "Pop Punk", vocals: {}, structureOptions: { intro: [{label:"Power Chord", val:"[Intro: Power Chord]"}] } }
+                "00s": {
+                    baseTags: "Pop Punk, High Energy",
+                    params: "Exclude: Slow",
+                    vocals: { male: {tag: "Nasal, Punk", desc: "Punk"}, female: {tag: "Sassy", desc: "Avril"} },
+                    structureOptions: {
+                        intro: [{label:"Drum Fill", val:"[Intro: Fast Drum Fill]"}],
+                        verse: [{label:"Palm Mute", val:"[Verse 1: Palm Mute Guitar]"}],
+                        chorus: [{label:"Catchy", val:"[Chorus: Catchy]"}],
+                        bridge: [{label:"Half-time", val:"[Bridge: Half-time breakdown]"}],
+                        outro: [{label:"Final Chord", val:"[Outro: Final Chord]"}]
+                    }
+                }
             }
         };
 
-        // --- 狀態管理 ---
-        let currentLang = null;
-        let currentEra = null;
-        let currentGender = null;
+        let currentLang = null, currentEra = null, currentGender = null;
 
-        // --- 邏輯函數 ---
         function selectLang(lang, btn) {
-            currentLang = lang;
-            currentEra = null;
-            currentGender = null;
-            
+            currentLang = lang; currentEra = null; currentGender = null;
             document.querySelectorAll('.btn-lang').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-
-            const eraSection = document.getElementById('section-era');
-            eraSection.classList.remove('disabled');
+            document.getElementById('section-era').classList.remove('disabled');
             document.getElementById('label-era').innerText = "請選擇年代...";
-            
             document.querySelectorAll('#section-era .choice-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('section-vocal').classList.add('disabled');
             document.getElementById('section-struct').classList.add('disabled');
+            document.getElementById('section-theme').classList.add('disabled');
             resetOutput();
         }
 
         function selectEra(era, btn) {
-            currentEra = era;
-            currentGender = null;
-
+            currentEra = era; currentGender = null;
             document.querySelectorAll('#section-era .choice-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            
-            const data = timeMachineData[currentLang]?.[era];
-            if (!data) return; // 防呆
-
-            document.getElementById('label-era').innerText = `${era} (${data.baseTags.split(',')[0]})`;
-
+            const data = timeMachineData[currentLang][era];
+            document.getElementById('label-era').innerText = era;
             document.getElementById('section-vocal').classList.remove('disabled');
             document.querySelectorAll('#section-vocal .choice-btn').forEach(b => b.classList.remove('active'));
-            
-            // 更新人聲描述
-            if(data.vocals && data.vocals.male) {
+            if(data.vocals) {
                 document.getElementById('desc-male').innerText = data.vocals.male.desc;
                 document.getElementById('desc-female').innerText = data.vocals.female.desc;
             }
-
-            // 載入結構積木
             loadStructure(data.structureOptions);
             renderOutput();
         }
@@ -516,11 +411,12 @@
             renderOutput();
         }
 
-        // --- 🏗️ 動態結構生成器 ---
+        // --- 核心：V27.1 下拉選單結構生成器 ---
         function loadStructure(options) {
             const container = document.getElementById('struct-container');
             container.innerHTML = '';
             document.getElementById('section-struct').classList.remove('disabled');
+            document.getElementById('section-theme').classList.remove('disabled');
 
             // 順序：Intro -> Verse -> Chorus -> Bridge -> Outro
             const order = ['intro', 'verse', 'chorus', 'bridge', 'outro'];
@@ -541,7 +437,7 @@
                     renderLyrics();
                 };
 
-                // 右側選單
+                // 右側下拉選單
                 const select = document.createElement('select');
                 select.className = 'struct-select';
                 select.onchange = () => renderLyrics();
@@ -575,29 +471,67 @@
         function renderOutput() {
             if (!currentLang || !currentEra) return;
             const data = timeMachineData[currentLang][currentEra];
-            
-            document.getElementById('params-box').value = data.params || "";
-
+            document.getElementById('params-box').value = data.params;
             let tags = [data.baseTags];
             let logicMsg = "";
-
             if (currentGender && data.vocals) {
                 tags.push(data.vocals[currentGender].tag);
-                if (currentGender === 'male') tags.push("Male Vocals");
-                else tags.push("Female Vocals");
+                tags.push(currentGender === 'male' ? "Male Vocals" : "Female Vocals");
                 logicMsg = `✨ ${data.vocals[currentGender].desc}`;
             }
-
             document.getElementById('style-box').value = tags.join(", ");
             document.getElementById('logic-log').innerText = logicMsg;
         }
 
-        function copyAll() {
-            const style = document.getElementById('style-box').value;
-            const params = document.getElementById('params-box').value;
-            const lyrics = document.getElementById('lyrics-box').value;
-            const text = `Style:\n${style}\n\nParams:\n${params}\n\nLyrics Structure:\n${lyrics}`;
-            navigator.clipboard.writeText(text);
+        // --- V29 獨立複製功能 ---
+        function copySingle(elementId, btn) {
+            const el = document.getElementById(elementId);
+            if (!el || !el.value) return;
+
+            navigator.clipboard.writeText(el.value).then(() => {
+                const originalText = btn.innerText;
+                btn.innerText = "✅ 已複製";
+                btn.style.background = "var(--highlight)";
+                btn.style.color = "#000";
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.style.background = "#333";
+                    btn.style.color = "#fff";
+                }, 1500);
+            });
+        }
+
+        function copyLyricsPrompt() {
+            const theme = document.getElementById('theme-input').value || "關於愛情與回憶";
+            const structure = document.getElementById('lyrics-box').value;
+            const era = currentEra;
+            
+            let langPrompt = "";
+            if (currentLang === 'cn') langPrompt = "Traditional Chinese (Cantonese or Mandarin depending on context)";
+            if (currentLang === 'jp') langPrompt = "Japanese (include Romaji)";
+            if (currentLang === 'en') langPrompt = "English";
+
+            const prompt = `
+Role: Professional Songwriter
+Task: Write lyrics for a song.
+
+Context:
+- Language: ${langPrompt}
+- Era/Style: ${era} Music Style
+- Theme: "${theme}"
+
+IMPORTANT:
+1. Strictly follow the structure below. Do NOT change the tags (e.g., [Intro]).
+2. Match the lyrics to the "Vocal Style" described in the tags.
+
+Structure to Fill:
+${structure}
+            `;
+            
+            navigator.clipboard.writeText(prompt);
+            const btn = document.querySelector('.btn-prompt');
+            btn.innerText = "✅ Prompt 已複製！";
+            setTimeout(() => btn.innerText = "🤖 複製填詞 Prompt (給 ChatGPT)", 2000);
         }
 
         function resetAll() {
@@ -606,6 +540,7 @@
             document.getElementById('section-era').classList.add('disabled');
             document.getElementById('section-vocal').classList.add('disabled');
             document.getElementById('section-struct').classList.add('disabled');
+            document.getElementById('section-theme').classList.add('disabled');
             document.getElementById('style-box').value = "";
             document.getElementById('params-box').value = "";
             document.getElementById('lyrics-box').value = "";
@@ -613,6 +548,8 @@
             document.getElementById('label-era').innerText = "";
             document.getElementById('desc-male').innerText = "--";
             document.getElementById('desc-female').innerText = "--";
+            document.getElementById('theme-input').value = "";
+            document.getElementById('logic-log').innerText = "";
         }
     </script>
 </body>
