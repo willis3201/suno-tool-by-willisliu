@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI 時光機 V30.0 (Ultimate Edition)</title>
+    <title>AI 時光機 V30.0 (One-Click Tension)</title>
     <style>
         :root {
             --bg-color: #121212;
@@ -16,6 +16,7 @@
             --english: #0984e3;   
             --param: #74b9ff;     
             --lyric: #fab1a0;     
+            --tension: #ff7675;   /* 張力紅 */
             --text: #dfe6e9;
             --border: #333;
             --block-bg: #2d3436;
@@ -69,24 +70,50 @@
         .btn-lang.active[data-lang="en"] { background: rgba(9, 132, 227, 0.2); border-color: var(--english); color: var(--english); }
         .btn-sub { font-size: 10px; opacity: 0.6; margin-top: 4px; font-weight: normal; }
 
-        /* 結構與力度 (回歸 V27.1 下拉選單樣式) */
-        .structure-rows { display: flex; flex-direction: column; gap: 8px; }
-        .struct-row { display: flex; align-items: center; background: var(--block-bg); border: 1px solid var(--border); padding: 8px 12px; border-radius: 6px; gap: 10px; }
-        .struct-row.inactive { opacity: 0.5; background: transparent; border-style: dashed; }
-        .struct-check { display: flex; align-items: center; cursor: pointer; min-width: 80px; font-weight: bold; font-size: 12px; color: var(--highlight); }
-        .checkbox-fake { width: 14px; height: 14px; border: 1px solid #777; border-radius: 3px; margin-right: 8px; display: inline-block; position: relative; }
-        .struct-row.active .checkbox-fake { background: var(--highlight); border-color: var(--highlight); }
-        .struct-select { flex: 1; background: #111; color: #fff; border: 1px solid #444; border-radius: 4px; padding: 6px; font-size: 11px; outline: none; cursor: pointer; }
-        
-        .struct-row.inactive .struct-select { pointer-events: none; color: #555; border-color: #333; }
+        /* 🔥 張力開關 */
+        .tension-switch-container {
+            display: flex;
+            align-items: center;
+            background: #2d2d2d;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #444;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .tension-switch-container:hover { background: #333; }
+        .tension-switch-container.active { 
+            background: rgba(255, 118, 117, 0.15); 
+            border-color: var(--tension); 
+        }
+        .tension-label { flex: 1; font-weight: bold; font-size: 13px; color: #ccc; display: flex; align-items: center; gap: 8px; }
+        .tension-switch-container.active .tension-label { color: var(--tension); }
+        .toggle-knob {
+            width: 36px; height: 20px; background: #555; border-radius: 20px; position: relative; transition: all 0.3s;
+        }
+        .toggle-knob::after {
+            content: ''; position: absolute; left: 2px; top: 2px; width: 16px; height: 16px; background: #fff; border-radius: 50%; transition: all 0.3s;
+        }
+        .tension-switch-container.active .toggle-knob { background: var(--tension); }
+        .tension-switch-container.active .toggle-knob::after { transform: translateX(16px); }
+
+        /* 結構積木 */
+        .structure-grid { display: flex; gap: 8px; flex-wrap: wrap; }
+        .struct-block {
+            background: var(--block-bg); border: 1px solid var(--border); padding: 8px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 6px; user-select: none; transition: all 0.2s;
+        }
+        .struct-block:hover { background: #3d3d3d; }
+        .struct-block.checked { background: rgba(0, 206, 201, 0.15); border-color: var(--highlight); color: var(--highlight); }
+        .checkbox-fake { width: 12px; height: 12px; border: 1px solid #777; border-radius: 3px; display: inline-block; position: relative; }
+        .struct-block.checked .checkbox-fake { background: var(--highlight); border-color: var(--highlight); }
 
         .theme-input { width: 100%; background: #000; border: 1px solid var(--lyric); color: #fff; padding: 12px; border-radius: 6px; font-size: 14px; box-sizing: border-box; outline: none; }
 
-        /* 輸出面板 (V29 獨立複製版) */
+        /* 輸出面板 */
         .output-panel {
             position: fixed; bottom: 0; left: 0; width: 100%; background: #111; border-top: 3px solid var(--highlight); padding: 15px; box-shadow: 0 -10px 40px rgba(0,0,0,0.9); z-index: 100; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px;
         }
-
         .output-group { flex: 1; display: flex; flex-direction: column; }
         .output-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
         .output-label { font-size: 11px; color: #777; font-weight: bold; text-transform: uppercase; }
@@ -144,8 +171,17 @@
     </div>
 
     <div class="section-box disabled" id="section-struct">
-        <div class="section-title"><span>4. 導演結構 (Intensity Control)</span> <span style="font-size:10px; color:#777">勾選啟用 • 下拉選擇力度</span></div>
-        <div class="structure-rows" id="struct-container"></div>
+        <div class="section-title"><span>4. 導演結構 (Structure)</span></div>
+        
+        <div class="tension-switch-container" onclick="toggleTension()">
+            <div class="tension-label">
+                <span>🔥 開啟高張力模式 (High Tension Mode)</span>
+                <span style="font-size:10px; opacity:0.7; font-weight:normal;">自動注入「獨奏 / 音牆 / 煞車」等大師指令</span>
+            </div>
+            <div class="toggle-knob"></div>
+        </div>
+
+        <div class="structure-grid" id="struct-container"></div>
     </div>
 
     <div class="section-box disabled" id="section-theme" style="border-left: 3px solid var(--lyric);">
@@ -186,88 +222,48 @@
     </div>
 
     <script>
-        // --- V27.1 的詳細資料庫 (含力度下拉選單) ---
+        // --- V30.0 雙層資料庫 (Dual-Layer Database) ---
+        // normal: 安全牌 | tension: 大師級測試指令 (Solitary Cello, Wall of Sound, etc.)
         const timeMachineData = {
             "cn": {
                 "70s": {
                     baseTags: "70s Mandopop, Vintage Recording, Analog Warmth, Mono, Low Fidelity, Tape Hiss, Slow Tempo",
                     params: "Exclude: Modern, Digital | Weirdness: 20% | Influence: 85%",
                     vocals: { male: { tag: "Warm, Conversational, Folk Style", desc: "許冠傑式" }, female: { tag: "Sweet, Airy, Whispery, Crystal Clear", desc: "鄧麗君式" } },
-                    structureOptions: {
-                        intro: [
-                            { label: "極簡獨奏 (長笛/吉他)", val: "[Intro: Melodic Flute Solo, Minimalist]" },
-                            { label: "管弦樂團 (大氣)", val: "[Intro: Orchestral Strings Intro]" }
-                        ],
-                        verse: [ { label: "敘事感 (貼耳)", val: "[Verse 1: Sweet Airy Vocals, Very Close Proximity]" } ],
-                        chorus: [ { label: "溫柔和聲 (抒情)", val: "[Chorus: Gentle Harmony, Sentimental]" } ],
-                        bridge: [
-                            { label: "吉他獨奏 (經典)", val: "[Bridge: Acoustic Guitar Solo]" },
-                            { label: "無 (直接進結尾)", val: "" }
-                        ],
-                        outro: [
-                            { label: "淡出 (Fade Out)", val: "[Outro: Fade out]" },
-                            { label: "口白 (Spoken)", val: "[Outro: Spoken Word, Whisper]" }
-                        ]
+                    structDefaults: ["intro", "verse", "chorus", "outro"],
+                    blocks: {
+                        normal: { intro: "[Intro: Melodic Flute Solo]", verse: "[Verse 1: Sweet Airy Vocals]", chorus: "[Chorus: Gentle Harmony]", bridge: "[Bridge: Acoustic Guitar]", outro: "[Outro: Fade out]" },
+                        tension: { intro: "[Intro: Solitary Flute Solo, Minimalist, Silence]", verse: "[Verse 1: Very Close Proximity, Whisper]", chorus: "[Chorus: Emotional Swell, Strings Section]", bridge: "[Bridge: Harmonica Solo, Nostalgic]", outro: "[Outro: Spoken Word, Fade into Silence]" }
                     }
                 },
                 "80s": {
                     baseTags: "80s Cantopop, Synth-Pop, Gated Reverb, Analog Synth, Dramatic",
                     params: "Exclude: Acoustic | Weirdness: 30% | Influence: 70%",
                     vocals: { male: { tag: "Romantic, Baritone, Heavy Reverb", desc: "張國榮式" }, female: { tag: "Contralto, Soulful, Powerful", desc: "梅艷芳式" } },
-                    structureOptions: {
-                        intro: [
-                            { label: "Synth+重鼓 (動感)", val: "[Intro: Synth Hook and Heavy Gated Reverb Drums]" },
-                            { label: "薩克斯風 (浪漫)", val: "[Intro: Saxophone Solo, City Night Vibe]" }
-                        ],
-                        verse: [ { label: "深情 (Reverb)", val: "[Verse 1: Reverb Heavy Vocals]" } ],
-                        chorus: [ { label: "朗朗上口 (Catchy)", val: "[Chorus: Catchy Melody, Romantic]" } ],
-                        bridge: [
-                            { label: "電吉他獨奏 (華麗)", val: "[Bridge: Electric Guitar Solo, Gated Reverb]" },
-                            { label: "鼓聲過門 (Fill)", val: "[Bridge: Drum Solo Fill]" }
-                        ],
-                        outro: [ { label: "重複並淡出", val: "[Outro: Repeat Chorus and Fade out]" } ]
+                    structDefaults: ["intro", "verse", "chorus", "bridge", "outro"],
+                    blocks: {
+                        normal: { intro: "[Intro: Synth Hook]", verse: "[Verse 1: Reverb Vocals]", chorus: "[Chorus: Catchy Melody]", bridge: "[Bridge: Guitar Solo]", outro: "[Outro: Fade out]" },
+                        tension: { intro: "[Intro: Massive Gated Reverb Drums, Synth Stab]", verse: "[Verse 1: Deep Emotional, Atmospheric]", chorus: "[Chorus: Power Anthem, Stadium Sound, High Energy]", bridge: "[Bridge: Electric Guitar Shredding, Key Change]", outro: "[Outro: Repeat Chorus, Grand Finale]" }
                     }
                 },
                 "90s": {
                     baseTags: "90s Mandopop, Power Ballad, Orchestral, Piano, Wide Stereo",
                     params: "Exclude: Lofi | Weirdness: 40%",
                     vocals: { male: { tag: "Deep, Heavy Vibrato, Belting", desc: "張學友式" }, female: { tag: "Ethereal, Falsetto, Dream Pop", desc: "王菲式" } },
-                    structureOptions: {
-                        intro: [
-                            { label: "鋼琴獨奏 (經典)", val: "[Intro: Grand Piano Solo]" },
-                            { label: "弦樂交響 (大歌)", val: "[Intro: Full Orchestral Strings]" }
-                        ],
-                        verse: [ { label: "低沈鋪陳", val: "[Verse 1: Deep Emotional Vocals]" } ],
-                        chorus: [
-                            { label: "爆發力 (Power)", val: "[Chorus: Powerful Belting, Full Orchestra, Wall of Sound]" },
-                            { label: "顫音抒情 (Vibrato)", val: "[Chorus: Emotional with Heavy Vibrato]" }
-                        ],
-                        bridge: [
-                            { label: "漸弱煞車 (Decrescendo)", val: "[Bridge: Decrescendo, Slowing Down, Strip back instruments]" }, 
-                            { label: "情緒堆疊 (Build-up)", val: "[Bridge: Rising Tension, Drum Roll]" }
-                        ],
-                        outro: [
-                            { label: "驟停 (Silence)", val: "[Outro: Sudden Silence, Piano decay]" },
-                            { label: "拖長音", val: "[Outro: Long high note]" }
-                        ]
+                    structDefaults: ["intro", "verse", "chorus", "bridge", "outro"],
+                    blocks: {
+                        normal: { intro: "[Intro: Grand Piano]", verse: "[Verse 1: Emotional]", chorus: "[Chorus: Powerful]", bridge: "[Bridge: Slow down]", outro: "[Outro: Silence]" },
+                        tension: { intro: "[Intro: Solitary Cello, Minimalist, Dark]", verse: "[Verse 1: Soft Vocals, Building Up]", chorus: "[Chorus: WALL OF SOUND, Full Orchestra, Massive Texture, Emotional Explosion]", bridge: "[Bridge: Decrescendo, Slowing Down, Strip back instruments]", outro: "[Outro: Sudden Silence, Piano decay]" }
                     }
                 },
                 "00s": {
                     baseTags: "00s Mandopop, R&B, Pentatonic, Hip Hop Beat",
                     params: "Exclude: EDM | Weirdness: 40%",
                     vocals: { male: { tag: "Mumble, R&B Flow, Slurred", desc: "周杰倫式" }, female: { tag: "Youthful, Bright, Pop", desc: "梁靜茹式" } },
-                    structureOptions: {
-                        intro: [
-                            { label: "古典鋼琴", val: "[Intro: Classical Piano Solo]" },
-                            { label: "特效/鈴聲", val: "[Intro: Sound FX, Vinyl scratch]" }
-                        ],
-                        verse: [ { label: "饒舌唸白 (Rap)", val: "[Verse 1: Mumble Rap style, Laid back]" } ],
-                        chorus: [ { label: "中國風 R&B", val: "[Chorus: R&B Melody with Chinese Instruments]" } ],
-                        bridge: [
-                            { label: "快嘴 Rap", val: "[Bridge: Fast Rap Flow]" },
-                            { label: "半速 (Half-time)", val: "[Bridge: Half-time Breakdown]" }
-                        ],
-                        outro: [ { label: "鋼琴收尾", val: "[Outro: Soft Piano]" } ]
+                    structDefaults: ["intro", "verse", "chorus", "bridge", "outro"],
+                    blocks: {
+                        normal: { intro: "[Intro: Piano]", verse: "[Verse 1: R&B]", chorus: "[Chorus: Chinese Style]", bridge: "[Bridge: Rap]", outro: "[Outro: Piano]" },
+                        tension: { intro: "[Intro: Classical Piano Solo, Fast Arpeggio]", verse: "[Verse 1: Mumble Rap, Laid back, Groovy]", chorus: "[Chorus: Epic R&B, Chinese Instruments, Heavy Bass]", bridge: "[Bridge: Fast Rap Flow, Double Time]", outro: "[Outro: Sound FX, Vinyl Stop]" }
                     }
                 }
             },
@@ -276,48 +272,40 @@
                     baseTags: "70s Enka, Kayokyoku, Showa Era, Orchestral, Melodramatic",
                     params: "Exclude: Modern | Weirdness: 30%",
                     vocals: { male: {tag: "Deep, Kobushi", desc: "演歌"}, female: {tag: "Melancholic", desc: "昭和"} },
-                    structureOptions: {
-                        intro: [{label:"口白 (Spoken)", val:"[Intro: Spoken Word with Emotion]"}, {label:"演歌前奏", val:"[Intro: Traditional Enka Intro]"}],
-                        verse: [{label:"哀愁", val:"[Verse 1: Melancholic Vocals]"}],
-                        chorus: [{label:"悲壯 (Dramatic)", val:"[Chorus: Powerful, Dramatic, Kobushi]"}],
-                        bridge: [{label:"薩克斯風獨奏", val:"[Bridge: Saxophone Solo]"}],
-                        outro: [{label:"華麗結尾", val:"[Outro: Grand Finale]"}]
+                    structDefaults: ["intro", "verse", "chorus", "outro"],
+                    blocks: {
+                        normal: { intro: "[Intro: Enka Intro]", verse: "[Verse 1: Sad]", chorus: "[Chorus: Powerful]", bridge: "[Bridge: Sax]", outro: "[Outro: End]" },
+                        tension: { intro: "[Intro: Spoken Word with Deep Emotion, Rain Sound]", verse: "[Verse 1: Trembling Voice, Melancholic]", chorus: "[Chorus: Dramatic, Kobushi, Guttural]", bridge: "[Bridge: Tearful Saxophone Solo]", outro: "[Outro: Grand Orchestral Finale]" }
                     }
                 },
                 "80s": {
                     baseTags: "City Pop, Funk, Slap Bass, Neon, Urban",
                     params: "Exclude: Sad | Weirdness: 60%",
                     vocals: { male: {tag: "Funky", desc: "達郎式"}, female: {tag: "Bright, Idol", desc: "聖子式"} },
-                    structureOptions: {
-                        intro: [{label:"Funky Guitar", val:"[Intro: Funky Guitar and Slap Bass]"}],
-                        verse: [{label:"Smooth", val:"[Verse 1: Smooth Vocals]"}],
-                        chorus: [{label:"輕快 (Upbeat)", val:"[Chorus: Catchy Melody, Upbeat]"}],
-                        bridge: [{label:"Synth Solo", val:"[Bridge: Synthesizer Solo]"}],
-                        outro: [{label:"Fade Out", val:"[Outro: Fade out]"}]
+                    structDefaults: ["intro", "verse", "chorus", "bridge", "outro"],
+                    blocks: {
+                        normal: { intro: "[Intro: Funky Guitar]", verse: "[Verse 1: Smooth]", chorus: "[Chorus: Catchy]", bridge: "[Bridge: Synth]", outro: "[Outro: Fade]" },
+                        tension: { intro: "[Intro: Slap Bass Solo, Neon Lights Vibe]", verse: "[Verse 1: Groovy, Syncopated Rhythm]", chorus: "[Chorus: High Pitch, Sparkling, Upbeat Explosion]", bridge: "[Bridge: Synthesizer Solo, Futuristic]", outro: "[Outro: Vocal Ad-libs, Fade out]" }
                     }
                 },
                 "90s": {
                     baseTags: "J-Rock, Visual Kei, Distortion, Fast Tempo",
                     params: "Exclude: Pop | Weirdness: 50%",
                     vocals: { male: {tag: "Nasal, High Pitch", desc: "視覺系"}, female: {tag: "Power, Eurobeat", desc: "安室式"} },
-                    structureOptions: {
-                        intro: [{label:"Guitar Riff", val:"[Intro: Fast Guitar Riff]"}],
-                        verse: [{label:"Build up", val:"[Verse 1: Low Voice building up]"}],
-                        chorus: [{label:"Screaming", val:"[Chorus: High Pitch Screaming]"}],
-                        bridge: [{label:"Twin Guitar", val:"[Bridge: Twin Guitar Solo]"}],
-                        outro: [{label:"Feedback", val:"[Outro: Feedback Noise]"}]
+                    structDefaults: ["intro", "verse", "chorus", "bridge", "outro"],
+                    blocks: {
+                        normal: { intro: "[Intro: Guitar]", verse: "[Verse 1: Low]", chorus: "[Chorus: Loud]", bridge: "[Bridge: Solo]", outro: "[Outro: Noise]" },
+                        tension: { intro: "[Intro: Fast Electric Guitar Riff, Aggressive]", verse: "[Verse 1: Whispering building to Screaming]", chorus: "[Chorus: High Pitch Screaming, Melodic, Double Bass Drum]", bridge: "[Bridge: Twin Guitar Solo, Neoclassical]", outro: "[Outro: Feedback Noise, Glass Breaking]" }
                     }
                 },
                 "00s": {
                     baseTags: "00s J-Pop, R&B, Automatic, Polished",
                     params: "Exclude: Enka | Weirdness: 40%",
                     vocals: { male: {tag: "Smooth, R&B", desc: "平井堅式"}, female: {tag: "Husky, Vibrato", desc: "宇多田式"} },
-                    structureOptions: {
-                        intro: [{label:"Electronic", val:"[Intro: Electronic Beat]"}],
-                        verse: [{label:"R&B Flow", val:"[Verse 1: R&B Flow]"}],
-                        chorus: [{label:"Emotional", val:"[Chorus: Emotional Melody]"}],
-                        bridge: [{label:"English Rap", val:"[Bridge: English Rap]"}],
-                        outro: [{label:"Fade out", val:"[Outro: Fade out]"}]
+                    structDefaults: ["intro", "verse", "chorus", "bridge", "outro"],
+                    blocks: {
+                        normal: { intro: "[Intro: Beat]", verse: "[Verse 1: R&B]", chorus: "[Chorus: Pop]", bridge: "[Bridge: Rap]", outro: "[Outro: Fade]" },
+                        tension: { intro: "[Intro: Electronic Beat, Glitch]", verse: "[Verse 1: Breathable Vocals, R&B Flow]", chorus: "[Chorus: Emotional Melody, Complex Harmony]", bridge: "[Bridge: English Rap, Breakdown]", outro: "[Outro: Sudden Stop]" }
                     }
                 }
             },
@@ -326,54 +314,62 @@
                     baseTags: "70s Soft Rock, Folk, Acoustic, Warm",
                     params: "Exclude: Digital",
                     vocals: { male: {tag: "Soft, Folk", desc: "Folk"}, female: {tag: "Warm, Velvet", desc: "Karen"} },
-                    structureOptions: {
-                        intro: [{label:"吉他指彈", val:"[Intro: Acoustic Guitar Fingerpicking]"}],
-                        verse: [{label:"說故事", val:"[Verse 1: Storytelling Vocals]"}],
-                        chorus: [{label:"溫暖和聲", val:"[Chorus: Warm Harmony]"}],
-                        bridge: [{label:"鋼琴過門", val:"[Bridge: Piano Interlude]"}],
-                        outro: [{label:"Fade Out", val:"[Outro: Fade out]"}]
+                    structDefaults: ["intro", "verse", "chorus", "bridge", "outro"],
+                    blocks: {
+                        normal: { intro: "[Intro: Guitar]", verse: "[Verse 1: Story]", chorus: "[Chorus: Harmony]", bridge: "[Bridge: Piano]", outro: "[Outro: Fade]" },
+                        tension: { intro: "[Intro: Fingerpicking Acoustic Guitar, Intimate]", verse: "[Verse 1: Storytelling, Warm, Dry]", chorus: "[Chorus: Lush Harmonies, Multi-tracked]", bridge: "[Bridge: Gentle Piano Interlude]", outro: "[Outro: Long Fade Out, Nostalgic]" }
                     }
                 },
                 "80s": {
                     baseTags: "80s Pop, Synthwave, Analog Synth",
                     params: "Exclude: Acoustic",
                     vocals: { male: {tag: "Falsetto", desc: "MJ Style"}, female: {tag: "Power Diva", desc: "Madonna"} },
-                    structureOptions: {
-                        intro: [{label:"Synth Riff", val:"[Intro: Iconic Synth Riff]"}],
-                        verse: [{label:"Percussive", val:"[Verse 1: Percussive Vocals]"}],
-                        chorus: [{label:"High Energy", val:"[Chorus: High Energy]"}],
-                        bridge: [{label:"Key Change", val:"[Bridge: Key Change]"}],
-                        outro: [{label:"Ad-libs", val:"[Outro: Vocal Ad-libs]"}]
+                    structDefaults: ["intro", "verse", "chorus", "bridge", "outro"],
+                    blocks: {
+                        normal: { intro: "[Intro: Synth]", verse: "[Verse 1: Beat]", chorus: "[Chorus: Dance]", bridge: "[Bridge: Key Change]", outro: "[Outro: Vocal]" },
+                        tension: { intro: "[Intro: Iconic Synth Riff, Drum Machine Fill]", verse: "[Verse 1: Percussive Vocals, Hiccups]", chorus: "[Chorus: High Energy, Danceable, Explosive]", bridge: "[Bridge: Dramatic Key Change]", outro: "[Outro: Vocal Ad-libs, High Note]" }
                     }
                 },
                 "90s": {
                     baseTags: "Britpop, Grunge, Distortion",
                     params: "Exclude: Pop",
                     vocals: { male: {tag: "Raspy, Nasal", desc: "Oasis"}, female: {tag: "Powerhouse", desc: "Mariah"} },
-                    structureOptions: {
-                        intro: [{label:"破音吉他", val:"[Intro: Distorted Guitar Riff]"}],
-                        verse: [{label:"慵懶 (Lazy)", val:"[Verse 1: Mumbled/Low Vocals]"}],
-                        chorus: [{label:"大合唱 (Anthem)", val:"[Chorus: Loud, Anthem-like, Distortion]"}],
-                        bridge: [{label:"噪音堆疊", val:"[Bridge: Noise Build-up]"}, {label:"煞車 (Quiet)", val:"[Bridge: Sudden Quiet Section]"}],
-                        outro: [{label:"Feedback Noise", val:"[Outro: Feedback and Noise]"}]
+                    structDefaults: ["intro", "verse", "chorus", "bridge", "outro"],
+                    blocks: {
+                        normal: { intro: "[Intro: Distortion]", verse: "[Verse 1: Low]", chorus: "[Chorus: Loud]", bridge: "[Bridge: Noise]", outro: "[Outro: Feedback]" },
+                        tension: { intro: "[Intro: Dirty Distorted Guitar Riff, Feedback]", verse: "[Verse 1: Mumbled Vocals, Slurred, Laid back]", chorus: "[Chorus: Anthem-like, Massive Wall of Sound, Raspy]", bridge: "[Bridge: Noise Build-up, Chaos]", outro: "[Outro: Amplifier Hum, Feedback]" }
                     }
                 },
                 "00s": {
                     baseTags: "Pop Punk, High Energy",
                     params: "Exclude: Slow",
                     vocals: { male: {tag: "Nasal, Punk", desc: "Punk"}, female: {tag: "Sassy", desc: "Avril"} },
-                    structureOptions: {
-                        intro: [{label:"Drum Fill", val:"[Intro: Fast Drum Fill]"}],
-                        verse: [{label:"Palm Mute", val:"[Verse 1: Palm Mute Guitar]"}],
-                        chorus: [{label:"Catchy", val:"[Chorus: Catchy]"}],
-                        bridge: [{label:"Half-time", val:"[Bridge: Half-time breakdown]"}],
-                        outro: [{label:"Final Chord", val:"[Outro: Final Chord]"}]
+                    structDefaults: ["intro", "verse", "chorus", "bridge", "outro"],
+                    blocks: {
+                        normal: { intro: "[Intro: Drums]", verse: "[Verse 1: Palm Mute]", chorus: "[Chorus: Catchy]", bridge: "[Bridge: Half-time]", outro: "[Outro: Chord]" },
+                        tension: { intro: "[Intro: Fast Drum Fill, Power Chords]", verse: "[Verse 1: Palm Mute Guitar, Bass only]", chorus: "[Chorus: High Energy, Catchy, Gang Vocals]", bridge: "[Bridge: Half-time breakdown, Slowing down]", outro: "[Outro: Final Ringing Chord]" }
                     }
                 }
             }
         };
 
         let currentLang = null, currentEra = null, currentGender = null;
+        let isTensionMode = false; // 🔥 張力模式狀態
+
+        // --- 核心邏輯 ---
+        function toggleTension() {
+            const btn = document.querySelector('.tension-switch-container');
+            isTensionMode = !isTensionMode;
+            if(isTensionMode) btn.classList.add('active');
+            else btn.classList.remove('active');
+            
+            // 重新載入結構（如果已選年代）
+            if(currentEra) {
+                // 保持目前的勾選狀態
+                const checkedBlocks = Array.from(document.querySelectorAll('.struct-block.checked')).map(b => b.dataset.type);
+                loadStructure(checkedBlocks);
+            }
+        }
 
         function selectLang(lang, btn) {
             currentLang = lang; currentEra = null; currentGender = null;
@@ -400,7 +396,7 @@
                 document.getElementById('desc-male').innerText = data.vocals.male.desc;
                 document.getElementById('desc-female').innerText = data.vocals.female.desc;
             }
-            loadStructure(data.structureOptions);
+            loadStructure(data.structDefaults); // 載入預設勾選
             renderOutput();
         }
 
@@ -411,59 +407,42 @@
             renderOutput();
         }
 
-        // --- 核心：V27.1 下拉選單結構生成器 ---
-        function loadStructure(options) {
+        function loadStructure(checkedTypes) {
             const container = document.getElementById('struct-container');
             container.innerHTML = '';
             document.getElementById('section-struct').classList.remove('disabled');
             document.getElementById('section-theme').classList.remove('disabled');
 
-            // 順序：Intro -> Verse -> Chorus -> Bridge -> Outro
-            const order = ['intro', 'verse', 'chorus', 'bridge', 'outro'];
+            const allTypes = ['intro', 'verse', 'chorus', 'bridge', 'outro'];
+            const data = timeMachineData[currentLang][currentEra];
+            const contentSource = isTensionMode ? data.blocks.tension : data.blocks.normal;
 
-            order.forEach(part => {
-                if (!options[part]) return;
+            allTypes.forEach(type => {
+                if(!contentSource[type]) return;
 
-                const row = document.createElement('div');
-                row.className = 'struct-row active'; // 預設啟用
+                const div = document.createElement('div');
+                div.className = 'struct-block';
+                div.dataset.type = type;
+                div.innerHTML = `<span class="checkbox-fake"></span> ${type.charAt(0).toUpperCase() + type.slice(1)}`;
                 
-                // 左側勾選
-                const checkDiv = document.createElement('div');
-                checkDiv.className = 'struct-check';
-                checkDiv.innerHTML = `<span class="checkbox-fake"></span> ${part.charAt(0).toUpperCase() + part.slice(1)}`;
-                checkDiv.onclick = () => {
-                    row.classList.toggle('active');
-                    row.classList.toggle('inactive');
-                    renderLyrics();
-                };
+                // 恢復勾選狀態 或 使用預設值
+                if(checkedTypes.includes(type)) div.classList.add('checked');
 
-                // 右側下拉選單
-                const select = document.createElement('select');
-                select.className = 'struct-select';
-                select.onchange = () => renderLyrics();
-
-                options[part].forEach(opt => {
-                    const option = document.createElement('option');
-                    option.value = opt.val;
-                    option.innerText = opt.label;
-                    select.appendChild(option);
-                });
-
-                row.appendChild(checkDiv);
-                row.appendChild(select);
-                container.appendChild(row);
+                div.onclick = () => { div.classList.toggle('checked'); renderLyrics(); };
+                container.appendChild(div);
             });
             renderLyrics();
         }
 
         function renderLyrics() {
-            const rows = document.querySelectorAll('.struct-row');
+            if(!currentEra) return;
+            const data = timeMachineData[currentLang][currentEra];
+            const contentSource = isTensionMode ? data.blocks.tension : data.blocks.normal;
+            
             let text = "";
-            rows.forEach(row => {
-                if (row.classList.contains('active')) {
-                    const select = row.querySelector('select');
-                    if (select.value) text += select.value + "\n\n";
-                }
+            document.querySelectorAll('.struct-block.checked').forEach(block => {
+                const type = block.dataset.type;
+                text += contentSource[type] + "\n\n";
             });
             document.getElementById('lyrics-box').value = text.trim();
         }
@@ -483,11 +462,10 @@
             document.getElementById('logic-log').innerText = logicMsg;
         }
 
-        // --- V29 獨立複製功能 ---
+        // --- V29 獨立複製 ---
         function copySingle(elementId, btn) {
             const el = document.getElementById(elementId);
             if (!el || !el.value) return;
-
             navigator.clipboard.writeText(el.value).then(() => {
                 const originalText = btn.innerText;
                 btn.innerText = "✅ 已複製";
@@ -505,28 +483,9 @@
             const theme = document.getElementById('theme-input').value || "關於愛情與回憶";
             const structure = document.getElementById('lyrics-box').value;
             const era = currentEra;
-            
-            let langPrompt = "";
-            if (currentLang === 'cn') langPrompt = "Traditional Chinese (Cantonese or Mandarin depending on context)";
-            if (currentLang === 'jp') langPrompt = "Japanese (include Romaji)";
-            if (currentLang === 'en') langPrompt = "English";
+            let langPrompt = currentLang === 'cn' ? "Traditional Chinese" : currentLang === 'jp' ? "Japanese (include Romaji)" : "English";
 
-            const prompt = `
-Role: Professional Songwriter
-Task: Write lyrics for a song.
-
-Context:
-- Language: ${langPrompt}
-- Era/Style: ${era} Music Style
-- Theme: "${theme}"
-
-IMPORTANT:
-1. Strictly follow the structure below. Do NOT change the tags (e.g., [Intro]).
-2. Match the lyrics to the "Vocal Style" described in the tags.
-
-Structure to Fill:
-${structure}
-            `;
+            const prompt = `Role: Professional Songwriter\nTask: Write lyrics.\nContext:\n- Language: ${langPrompt}\n- Era/Style: ${era}\n- Theme: "${theme}"\n\nStructure to Fill (Strictly follow tags):\n${structure}`;
             
             navigator.clipboard.writeText(prompt);
             const btn = document.querySelector('.btn-prompt');
@@ -535,7 +494,8 @@ ${structure}
         }
 
         function resetAll() {
-            currentLang = null; currentEra = null; currentGender = null;
+            currentLang = null; currentEra = null; currentGender = null; isTensionMode = false;
+            document.querySelector('.tension-switch-container').classList.remove('active');
             document.querySelectorAll('.active').forEach(b => b.classList.remove('active'));
             document.getElementById('section-era').classList.add('disabled');
             document.getElementById('section-vocal').classList.add('disabled');
